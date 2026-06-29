@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gothic Lock Studio</title>
+    <style>
+        /* ============================================================
+           RESET I PODSTAWY
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: #c8c8c8;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 220px 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* ============================================================
+           PANELE
+           ============================================================ */
+        .panel {
+            background: #2a2a2a;
+            border: 1px solid #4a3a2a;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .panel-title {
+            color: #b8a87a;
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 1px solid #4a3a2a;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .panel-title .badge {
+            background: #4a3a2a;
+            color: #b8a87a;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            float: right;
+            font-weight: normal;
+        }
+
+        /* ============================================================
+           KOLUMNA 1 - LISTA ZAMKÓW
+           ============================================================ */
+        .lock-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .lock-list li {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lock-list li:hover {
+            background: #333;
+        }
+
+        .lock-list li.active {
+            background: #3a3a1a;
+            border-left-color: #b8a87a;
+        }
+
+        .lock-list .badge {
+            background: #4a3a2a;
+            color: #b8a87a;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .btn-add {
+            background: #2a4a6a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .btn-add:hover {
+            background: #3a5a7a;
+        }
+
+        /* ============================================================
+           KOLUMNA 2 - EDYTOR
+           ============================================================ */
+        .editor-field {
+            margin-bottom: 10px;
+        }
+
+        .editor-field label {
+            display: inline-block;
+            width: 80px;
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .editor-field input,
+        .editor-field select {
+            background: #1a1a1a;
+            color: #c8c8c8;
+            border: 1px solid #4a3a2a;
+            border-radius: 4px;
+            padding: 5px 10px;
+            width: calc(100% - 90px);
+        }
+
+        /* ============================================================
+           REGUŁY
+           ============================================================ */
+        .rules-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        .rule-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .rule-row .rule-number {
+            color: #6a6a6a;
+            font-size: 12px;
+            min-width: 25px;
+        }
+
+        .rule-row input[type="number"] {
+            width: 35px;
+            background: #1a1a1a;
+            color: #c8c8c8;
+            border: 1px solid #4a3a2a;
+            border-radius: 3px;
+            padding: 3px 5px;
+            text-align: center;
+        }
+
+        .rule-row select {
+            background: #1a1a1a;
+            color: #c8c8c8;
+            border: 1px solid #4a3a2a;
+            border-radius: 3px;
+            padding: 3px 5px;
+        }
+
+        .rule-row .btn-remove {
+            background: #6a2a2a;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 2px 8px;
+            font-size: 12px;
+        }
+
+        .rule-row .btn-remove:hover {
+            background: #8a2a2a;
+        }
+
+        .no-rules {
+            color: #6a6a6a;
+            font-style: italic;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .btn-add-rule {
+            background: #2a4a2a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 12px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+
+        .btn-add-rule:hover {
+            background: #3a5a3a;
+        }
+
+        .btn-solve {
+            background: #4a7a4a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-solve:hover {
+            background: #5a8a5a;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            color: #8a8a8a;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        /* ============================================================
+           KOLUMNA 3 - WIZUALIZACJA
+           ============================================================ */
+        .lock-visualization {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #6a5a3a;
+            min-height: 200px;
+        }
+
+        .lock-pin {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 6px 10px;
+            background: #2a2a2a;
+            border: 2px solid #4a3a2a;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .lock-pin.selected {
+            border-color: #ffcc44;
+            background: #3a3a1a;
+            box-shadow: 0 0 15px rgba(255, 204, 68, 0.3);
+        }
+
+        .lock-pin.highlighted {
+            border-color: #ffcc44;
+            box-shadow: 0 0 20px rgba(255, 204, 68, 0.5);
+        }
+
+        .pin-label {
+            color: #b8a87a;
+            font-weight: bold;
+            font-size: 14px;
+            width: 30px;
+            text-align: center;
+            font-family: 'Segoe UI', sans-serif;
+            flex-shrink: 0;
+        }
+
+        .pin-body {
+            display: flex;
+            flex: 1;
+            justify-content: space-around;
+            padding: 5px 10px;
+            gap: 4px;
+        }
+
+        .pin-hole {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            border: 2px solid #4a3a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .pin-hole:hover {
+            border-color: #8a7a5a;
+            background: #2a2a2a;
+        }
+
+        .pin-hole.has-pin {
+            border-color: #b8a87a;
+            background: #2a2a1a;
+        }
+
+        .pin-bolt {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ffdd44, #cc9900);
+            border: 2px solid #b8860b;
+            box-shadow: 0 0 10px rgba(255, 204, 68, 0.5);
+            animation: pulse-bolt 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-bolt {
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(255, 204, 68, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 204, 68, 0.9);
+            }
+        }
+
+        .pin-position {
+            color: #6a6a6a;
+            font-size: 11px;
+            margin-left: 10px;
+            min-width: 70px;
+            text-align: right;
+            font-family: 'Segoe UI', sans-serif;
+            flex-shrink: 0;
+        }
+
+        .pin-hint {
+            color: #6a6a6a;
+            font-size: 11px;
+            font-style: italic;
+            text-align: center;
+            padding: 5px 0;
+            border-top: 1px solid #2a2a2a;
+            margin-top: 10px;
+        }
+
+        /* ============================================================
+           ROZWIĄZANIE
+           ============================================================ */
+        .solution-list {
+            max-height: 120px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .solution-step {
+            padding: 3px 5px;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 13px;
+            color: #c8c8c8;
+        }
+
+        .solution-step:last-child {
+            border-bottom: none;
+        }
+
+        .btn-simulate {
+            background: #4a4a6a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-simulate:hover {
+            background: #5a5a7a;
+        }
+
+        /* ============================================================
+           STATYSTYKI
+           ============================================================ */
+        .stats {
+            font-size: 12px;
+            color: #8a8a8a;
+            padding: 5px 0;
+        }
+
+        .stats span {
+            margin-right: 15px;
+        }
+
+        /* ============================================================
+           RESPONSYWNOŚĆ
+           ============================================================ */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .pin-body {
+                gap: 2px;
+                padding: 5px;
+            }
+
+            .pin-hole {
+                width: 22px;
+                height: 22px;
+            }
+
+            .pin-bolt {
+                width: 14px;
+                height: 14px;
+            }
+        }
+
+        /* ============================================================
+           SCROLLBAR
+           ============================================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a3a2a;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5a4a3a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ============================================================
+        KOLUMNA 1 - LISTA ZAMKÓW
+        ============================================================ -->
+        <div>
+            <div class="panel">
+                <div class="panel-title">MOJE ZAMKI</div>
+                <ul class="lock-list" id="lockList">
+                    <li class="active" data-index="0">
+                        Zamek w skrzyni
+                        <span class="badge">6 zapadek</span>
+                    </li>
+                </ul>
+                <button class="btn-add" onclick="addNewLock()">➕ Nowy</button>
+            </div>
+        </div>
+
+        <!-- ============================================================
+        KOLUMNA 2 - EDYTOR
+        ============================================================ -->
+        <div>
+            <div class="panel">
+                <div class="panel-title">EDYTOR ZAMKA</div>
+
+                <div class="editor-field">
+                    <label>Nazwa:</label>
+                    <input type="text" id="lockName" value="Zamek w skrzyni" />
+                </div>
+
+                <div class="editor-field">
+                    <label>Opis:</label>
+                    <input type="text" id="lockDesc" value="Zamek w starej skrzyni w Khorinis" />
+                </div>
+
+                <div class="editor-field">
+                    <label>Ilość zapadek:</label>
+                    <select id="pinCount">
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6" selected>6</option>
+                    </select>
+                </div>
+
+                <div style="margin-top:15px;">
+                    <div style="color:#b8a87a; font-weight:bold; margin-bottom:10px;">Reguły</div>
+                    <div class="rules-list" id="rulesList">
+                        <div class="no-rules">Brak reguł – kliknij '+ Dodaj regułę'</div>
+                    </div>
+                    <button class="btn-add-rule" onclick="addRule()">+ Dodaj regułę</button>
+                </div>
+
+                <button class="btn-solve" onclick="solveLock()">🔓 Rozwiąż zamek</button>
+                <div class="status" id="statusMessage">Stan: Gotowy</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Statystyki</div>
+                <div class="stats" id="stats">
+                    <span>• Najkrótsza liczba ruchów: ---</span>
+                    <span>• Liczba reguł: 0</span>
+                    <span>• Liczba zapadek: 6</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+        KOLUMNA 3 - WIZUALIZACJA I ROZWIĄZANIE
+        ============================================================ -->
+        <div>
+            <div class="panel">
+                <div class="panel-title">1. Stan zamka</div>
+                <div class="lock-visualization" id="lockVisualization">
+                    <!-- Zapadki będą generowane przez JavaScript -->
+                </div>
+                <div class="pin-hint">💡 Kliknij na otwór aby ustawić bołec</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Rozwiązanie</div>
+                <div class="solution-list" id="solutionList">
+                    <div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;">
+                        Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie
+                    </div>
+                </div>
+                <button class="btn-simulate" onclick="simulateLock()">▶ Symuluj ruchy...</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT - CAŁA LOGIKA
+    ============================================================ -->
+    <script>
+        // ============================================================
+        // MODEL ZAMKA
+        // ============================================================
+        class LockData {
+            constructor(name, description, pinCount, initialPins, rules) {
+                this.name = name || "Nowy zamek";
+                this.description = description || "";
+                this.pinCount = pinCount || 6;
+                this.targetValue = 4;
+                this.initialPins = initialPins || [7, 1, 4, 4, 4, 4];
+                this.rules = rules || [];
+                this.solution = [];
+            }
+        }
+
+        class Rule {
+            constructor(fromPin, toPin, direction) {
+                this.fromPin = fromPin;
+                this.toPin = toPin;
+                this.direction = direction; // 1 = +, -1 = -
+            }
+        }
+
+        // ============================================================
+        // SOLVER
+        // ============================================================
+        class LockSolver {
+            solve(lockData) {
+                const pinCount = lockData.pinCount;
+                const target = lockData.targetValue;
+                const initialPins = [...lockData.initialPins];
+                const rules = lockData.rules;
+
+                // Sprawdź czy wszystkie piny są w zakresie 1-7
+                for (let i = 0; i < initialPins.length; i++) {
+                    if (initialPins[i] < 1 || initialPins[i] > 7) return null;
+                }
+
+                const visited = new Set();
+                const queue = [];
+
+                queue.push({
+                    state: [...initialPins],
+                    steps: []
+                });
+                visited.add(stateToString(initialPins));
+
+                const maxSteps = 50;
+
+                while (queue.length > 0) {
+                    const { state, steps } = queue.shift();
+
+                    if (steps.length > maxSteps) continue;
+
+                    if (allAtTarget(state, target)) {
+                        return steps;
+                    }
+
+                    for (let pin = 1; pin <= pinCount; pin++) {
+                        for (const direction of [1, -1]) {
+                            const pinRules = rules.filter(r => r.fromPin === pin);
+                            let canMove = true;
+
+                            // Sprawdź czy sama zapadka może się przesunąć
+                            const selfNewValue = state[pin - 1] + direction;
+                            if (selfNewValue < 1 || selfNewValue > 7) canMove = false;
+
+                            // Sprawdź czy wszystkie zapadki z reguł mogą się przesunąć
+                            if (canMove) {
+                                for (const rule of pinRules) {
+                                    const toPin = rule.toPin - 1;
+                                    if (toPin < 0 || toPin >= pinCount) { canMove = false; break; }
+                                    const newValue = state[toPin] + direction * rule.direction;
+                                    if (newValue < 1 || newValue > 7) { canMove = false; break; }
+                                }
+                            }
+
+                            if (!canMove) continue;
+
+                            const newState = [...state];
+
+                            for (const rule of pinRules) {
+                                const toPin = rule.toPin - 1;
+                                newState[toPin] = newState[toPin] + direction * rule.direction;
+                            }
+
+                            newState[pin - 1] = newState[pin - 1] + direction;
+
+                            const stepDesc = `Zapadka ${pin} ${direction === 1 ? "→" : "←"}`;
+                            const newSteps = [...steps, stepDesc];
+
+                            const stateKey = stateToString(newState);
+                            if (!visited.has(stateKey)) {
+                                visited.add(stateKey);
+                                queue.push({
+                                    state: newState,
+                                    steps: newSteps
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        function allAtTarget(state, target) {
+            return state.every(p => p === target);
+        }
+
+        function stateToString(state) {
+            return state.join(",");
+        }
+
+        // ============================================================
+        // APLIKACJA
+        // ============================================================
+        let locks = [];
+        let currentLockIndex = 0;
+        let selectedPin = -1;
+        let highlightedPin = -1;
+        let currentPins = [];
+        let solutionSteps = [];
+        let currentStepIndex = -1;
+        let isPlaying = false;
+        let playInterval = null;
+
+        const solver = new LockSolver();
+
+        // ============================================================
+        // DANE POCZĄTKOWE
+        // ============================================================
+        function createDefaultLocks() {
+            const lock1 = new LockData(
+                "Zamek w skrzyni",
+                "Zamek w starej skrzyni w Khorinis",
+                6,
+                [7, 1, 4, 4, 4, 4], [
+                    new Rule(1, 2, 1),
+                    new Rule(1, 3, -1),
+                    new Rule(2, 4, 1),
+                    new Rule(3, 1, -1),
+                    new Rule(4, 2, 1),
+                    new Rule(5, 6, 1),
+                    new Rule(6, 4, -1)
+                ]
+            );
+            locks.push(lock1);
+
+            const lock2 = new LockData(
+                "Świątynia Innosa",
+                "Zamek w świątyni Innosa w Khorinis",
+                6,
+                [4, 2, 6, 1, 5, 3], [
+                    new Rule(1, 2, 1),
+                    new Rule(1, 3, -1),
+                    new Rule(2, 4, 1),
+                    new Rule(2, 5, -1),
+                    new Rule(3, 1, 1),
+                    new Rule(4, 6, 1),
+                    new Rule(5, 2, 1)
+                ]
+            );
+            locks.push(lock2);
+        }
+
+        // ============================================================
+        // RENDEROWANIE
+        // ============================================================
+        function renderLockList() {
+            const list = document.getElementById('lockList');
+            list.innerHTML = '';
+            locks.forEach((lock, index) => {
+                const li = document.createElement('li');
+                li.className = index === currentLockIndex ? 'active' : '';
+                li.dataset.index = index;
+                li.innerHTML = `
+                            ${lock.name}
+                            <span class="badge">${lock.pinCount} zapadek</span>
+                        `;
+                li.onclick = () => loadLock(index);
+                list.appendChild(li);
+            });
+        }
+
+        function renderLockVisualization() {
+            const container = document.getElementById('lockVisualization');
+            container.innerHTML = '';
+
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+
+            currentPins = [...lock.initialPins];
+
+            for (let i = 0; i < lock.pinCount; i++) {
+                const value = currentPins[i] || 4;
+                const pinDiv = document.createElement('div');
+                pinDiv.className = `lock-pin ${i === selectedPin ? 'selected' : ''} ${i === highlightedPin ? 'highlighted' : ''}`;
+                pinDiv.onclick = () => onPinClick(i);
+
+                // Label
+                const label = document.createElement('div');
+                label.className = 'pin-label';
+                label.textContent = i + 1;
+                pinDiv.appendChild(label);
+
+                // Body z otworami
+                const body = document.createElement('div');
+                body.className = 'pin-body';
+
+                for (let hole = 0; hole < 7; hole++) {
+                    const hasPin = (hole + 1 === value);
+                    const holeDiv = document.createElement('div');
+                    holeDiv.className = `pin-hole ${hasPin ? 'has-pin' : ''}`;
+                    holeDiv.onclick = (e) => {
+                        e.stopPropagation();
+                        onHoleClick(i, hole);
+                    };
+
+                    if (hasPin) {
+                        const bolt = document.createElement('div');
+                        bolt.className = 'pin-bolt';
+                        holeDiv.appendChild(bolt);
+                    }
+
+                    body.appendChild(holeDiv);
+                }
+
+                pinDiv.appendChild(body);
+
+                // Pozycja
+                const position = document.createElement('div');
+                position.className = 'pin-position';
+                position.textContent = `Pozycja: ${value}/7`;
+                pinDiv.appendChild(position);
+
+                container.appendChild(pinDiv);
+            }
+
+            updateStats();
+        }
+
+        function renderRules() {
+            const container = document.getElementById('rulesList');
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+
+            container.innerHTML = '';
+
+            if (lock.rules.length === 0) {
+                container.innerHTML = '<div class="no-rules">Brak reguł – kliknij "+ Dodaj regułę"</div>';
+                return;
+            }
+
+            lock.rules.forEach((rule, index) => {
+                const row = document.createElement('div');
+                row.className = 'rule-row';
+
+                const num = document.createElement('span');
+                num.className = 'rule-number';
+                num.textContent = `${index + 1}.`;
+                row.appendChild(num);
+
+                const fromInput = document.createElement('input');
+                fromInput.type = 'number';
+                fromInput.min = 1;
+                fromInput.max = lock.pinCount;
+                fromInput.value = rule.fromPin;
+                fromInput.onchange = () => updateRule(index, 0, parseInt(fromInput.value));
+                row.appendChild(fromInput);
+
+                const arrow = document.createElement('span');
+                arrow.textContent = '→';
+                row.appendChild(arrow);
+
+                const toInput = document.createElement('input');
+                toInput.type = 'number';
+                toInput.min = 1;
+                toInput.max = lock.pinCount;
+                toInput.value = rule.toPin;
+                toInput.onchange = () => updateRule(index, 1, parseInt(toInput.value));
+                row.appendChild(toInput);
+
+                const dirSelect = document.createElement('select');
+                const plusOpt = document.createElement('option');
+                plusOpt.value = '1';
+                plusOpt.textContent = '+';
+                const minusOpt = document.createElement('option');
+                minusOpt.value = '-1';
+                minusOpt.textContent = '-';
+                dirSelect.appendChild(plusOpt);
+                dirSelect.appendChild(minusOpt);
+                dirSelect.value = rule.direction;
+                dirSelect.onchange = () => updateRule(index, 2, parseInt(dirSelect.value));
+                row.appendChild(dirSelect);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn-remove';
+                removeBtn.textContent = '✕';
+                removeBtn.onclick = () => removeRule(index);
+                row.appendChild(removeBtn);
+
+                container.appendChild(row);
+            });
+        }
+
+        function renderSolution() {
+            const container = document.getElementById('solutionList');
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+
+            if (!lock.solution || lock.solution.length === 0) {
+                container.innerHTML = `
+                            <div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;">
+                                Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie
+                            </div>
+                        `;
+                return;
+            }
+
+            container.innerHTML = '';
+            lock.solution.forEach((step, index) => {
+                const div = document.createElement('div');
+                div.className = 'solution-step';
+                div.textContent = `${index + 1}. ${step}`;
+                container.appendChild(div);
+            });
+        }
+
+        function updateStats() {
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+
+            const statsEl = document.getElementById('stats');
+            const solutionCount = lock.solution ? lock.solution.length : 0;
+            statsEl.innerHTML = `
+                        <span>• Najkrótsza liczba ruchów: ${solutionCount > 0 ? solutionCount : '---'}</span>
+                        <span>• Liczba reguł: ${lock.rules.length}</span>
+                        <span>• Liczba zapadek: ${lock.pinCount}</span>
+                    `;
+        }
+
+        // ============================================================
+        // INTERAKCJE
+        // ============================================================
+        function onPinClick(index) {
+            if (selectedPin === index) {
+                selectedPin = -1;
+            } else {
+                selectedPin = index;
+            }
+            renderLockVisualization();
+        }
+
+        function onHoleClick(pinIndex, holeIndex) {
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+
+            const newValue = holeIndex + 1;
+            if (currentPins[pinIndex] !== newValue) {
+                currentPins[pinIndex] = newValue;
+                lock.initialPins = [...currentPins];
+                lock.solution = [];
+                selectedPin = -1;
+                renderLockVisualization();
+                renderSolution();
+                document.getElementById('statusMessage').textContent = 'Stan zmieniony - kliknij "Rozwiąż zamek"';
+                updateStats();
+            }
+        }
+
+        // ============================================================
+        // ZARZĄDZANIE ZAMKAMI
+        // ============================================================
+        function loadLock(index) {
+            currentLockIndex = index;
+            selectedPin = -1;
+            highlightedPin = -1;
+            const lock = locks[index];
+
+            document.getElementById('lockName').value = lock.name;
+            document.getElementById('lockDesc').value = lock.description || '';
+            document.getElementById('pinCount').value = lock.pinCount;
+
+            currentPins = [...lock.initialPins];
+
+            renderLockList();
+            renderLockVisualization();
+            renderRules();
+            renderSolution();
+            updateStats();
+
+            document.getElementById('statusMessage').textContent = `Załadowno: ${lock.name}`;
+        }
+
+        function addNewLock() {
+            const newLock = new LockData(
+                `Nowy zamek ${locks.length + 1}`,
+                "Nowy zamek do edycji",
+                3,
+                [1, 1, 1], []
+            );
+            locks.push(newLock);
+            loadLock(locks.length - 1);
+            document.getElementById('statusMessage').textContent = 'Dodano nowy zamek';
+        }
+
+        // ============================================================
+        // REGUŁY
+        // ============================================================
+        function addRule() {
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+            lock.rules.push(new Rule(1, 2, 1));
+            renderRules();
+            lock.solution = [];
+            renderSolution();
+            updateStats();
+            document.getElementById('statusMessage').textContent = 'Dodano regułę';
+        }
+
+        function removeRule(index) {
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+            lock.rules.splice(index, 1);
+            renderRules();
+            lock.solution = [];
+            renderSolution();
+            updateStats();
+            document.getElementById('statusMessage').textContent = 'Usunięto regułę';
+        }
+
+        function updateRule(index, field, value) {
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+            if (field === 0) lock.rules[index].fromPin = value;
+            else if (field === 1) lock.rules[index].toPin = value;
+            else if (field === 2) lock.rules[index].direction = value;
+            lock.solution = [];
+            renderSolution();
+            updateStats();
+        }
+
+        // ============================================================
+        // ROZWIĄZYWANIE
+        // ============================================================
+        function solveLock() {
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+
+            // Upewnij się że initialPins są aktualne
+            lock.initialPins = [...currentPins];
+
+            const solution = solver.solve(lock);
+
+            if (solution && solution.length > 0) {
+                lock.solution = solution;
+                document.getElementById('statusMessage').textContent = `✅ Rozwiązanie znalezione! ${solution.length} ruchów`;
+                document.getElementById('statusMessage').style.color = '#8a8';
+            } else {
+                lock.solution = [];
+                document.getElementById('statusMessage').textContent = '❌ Nie znaleziono rozwiązania!';
+                document.getElementById('statusMessage').style.color = '#a88';
+            }
+
+            renderSolution();
+            updateStats();
+        }
+
+        // ============================================================
+        // SYMULACJA
+        // ============================================================
+        function simulateLock() {
+            const lock = locks[currentLockIndex];
+            if (!lock || !lock.solution || lock.solution.length === 0) {
+                document.getElementById('statusMessage').textContent = 'Najpierw rozwiąż zamek!';
+                return;
+            }
+
+            if (isPlaying) {
+                stopSimulation();
+                return;
+            }
+
+            solutionSteps = lock.solution;
+            currentStepIndex = -1;
+            isPlaying = true;
+            document.querySelector('.btn-simulate').textContent = '⏹ Zatrzymaj';
+
+            // Resetuj piny
+            currentPins = [...lock.initialPins];
+            highlightedPin = -1;
+
+            playStep();
+        }
+
+        function playStep() {
+            if (!isPlaying) return;
+
+            currentStepIndex++;
+
+            if (currentStepIndex >= solutionSteps.length) {
+                stopSimulation();
+                return;
+            }
+
+            const step = solutionSteps[currentStepIndex];
+            applyStep(step);
+
+            highlightedPin = parseInt(step.split(' ')[1]) - 1;
+
+            renderLockVisualization();
+
+            // Podświetl aktualny krok w rozwiązaniu
+            const solutionContainer = document.getElementById('solutionList');
+            const steps = solutionContainer.querySelectorAll('.solution-step');
+            steps.forEach((el, index) => {
+                if (index === currentStepIndex) {
+                    el.style.color = '#ffcc44';
+                    el.style.backgroundColor = '#3a3a1a';
+                } else {
+                    el.style.color = '#c8c8c8';
+                    el.style.backgroundColor = 'transparent';
+                }
+            });
+
+            document.getElementById('statusMessage').textContent = `Krok ${currentStepIndex + 1}/${solutionSteps.length}: ${step}`;
+
+            playInterval = setTimeout(playStep, 800);
+        }
+
+        function applyStep(step) {
+            const parts = step.split(' ');
+            const pinIndex = parseInt(parts[1]) - 1;
+            const isForward = step.includes('→');
+            const lock = locks[currentLockIndex];
+
+            // Znajdź reguły dla tej zapadki
+            const pinRules = lock.rules.filter(r => r.fromPin === pinIndex + 1);
+
+            for (const rule of pinRules) {
+                const toPin = rule.toPin - 1;
+                const change = isForward ? rule.direction : -rule.direction;
+                const newValue = currentPins[toPin] + change;
+                if (newValue >= 1 && newValue <= 7) {
+                    currentPins[toPin] = newValue;
+                }
+            }
+
+            // Przesuń samą zapadkę
+            const selfChange = isForward ? 1 : -1;
+            const selfNewValue = currentPins[pinIndex] + selfChange;
+            if (selfNewValue >= 1 && selfNewValue <= 7) {
+                currentPins[pinIndex] = selfNewValue;
+            }
+
+            // Aktualizuj lock.initialPins
+            lock.initialPins = [...currentPins];
+        }
+
+        function stopSimulation() {
+            isPlaying = false;
+            clearTimeout(playInterval);
+            playInterval = null;
+            highlightedPin = -1;
+            document.querySelector('.btn-simulate').textContent = '▶ Symuluj ruchy...';
+            document.getElementById('statusMessage').textContent = 'Symulacja zatrzymana';
+
+            // Resetuj podświetlenie kroków
+            const solutionContainer = document.getElementById('solutionList');
+            const steps = solutionContainer.querySelectorAll('.solution-step');
+            steps.forEach((el) => {
+                el.style.color = '#c8c8c8';
+                el.style.backgroundColor = 'transparent';
+            });
+
+            renderLockVisualization();
+        }
+
+        // ============================================================
+        // OBSŁUGA ZDARZEŃ FORMULARZA
+        // ============================================================
+        document.getElementById('lockName').addEventListener('change', function() {
+            const lock = locks[currentLockIndex];
+            if (lock) {
+                lock.name = this.value;
+                renderLockList();
+            }
+        });
+
+        document.getElementById('lockDesc').addEventListener('change', function() {
+            const lock = locks[currentLockIndex];
+            if (lock) {
+                lock.description = this.value;
+            }
+        });
+
+        document.getElementById('pinCount').addEventListener('change', function() {
+            const lock = locks[currentLockIndex];
+            if (!lock) return;
+
+            const newCount = parseInt(this.value);
+            lock.pinCount = newCount;
+
+            // Dostosuj initialPins
+            const newPins = [];
+            for (let i = 0; i < newCount; i++) {
+                if (i < lock.initialPins.length) {
+                    newPins[i] = lock.initialPins[i];
+                } else {
+                    newPins[i] = 4;
+                }
+            }
+            lock.initialPins = newPins;
+            currentPins = [...newPins];
+
+            // Usuń reguły które odnoszą się do nieistniejących zapadek
+            lock.rules = lock.rules.filter(r => r.fromPin <= newCount && r.toPin <= newCount);
+
+            lock.solution = [];
+            renderLockVisualization();
+            renderRules();
+            renderSolution();
+            updateStats();
+            document.getElementById('statusMessage').textContent = `Zmieniono ilość zapadek na ${newCount}`;
+        });
+
+        // ============================================================
+        // INICJACJA
+        // ============================================================
+        createDefaultLocks();
+        loadLock(0);
+
+        console.log('🔄 Gothic Lock Studio loaded successfully!');
+        console.log(`📚 ${locks.length} locks available`);
+    </script>
+</body>
+</html>
