@@ -820,7 +820,7 @@
             updateStepInfo();
         }
 
-        // ============================================================
+       // ============================================================
         // ROZWIĄZYWANIE
         // ============================================================
         function solveLock() {
@@ -833,6 +833,10 @@
             lock.initialPins = [...currentPins];
             const solution = solver.solve(lock);
 
+            // Pobierz aktualny język
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+
             if (solution && solution.length > 0) {
                 lock.solution = solution;
                 solutionSteps = solution;
@@ -840,13 +844,18 @@
                 highlightedPin = -1;
                 stopPlayback();
                 currentPins = [...lock.initialPins];
-                document.getElementById('statusMessage').textContent = `✅ Rozwiązanie znalezione! ${solution.length} ruchów`;
+                
+                // Tłumaczenie komunikatu o znalezieniu rozwiązania
+                const foundMsg = t.solution_found || '✅ Rozwiązanie znalezione!';
+                document.getElementById('statusMessage').textContent = `${foundMsg} ${solution.length} ${t.solution_moves || 'ruchów'}`;
                 document.getElementById('statusMessage').style.color = '#8a8';
             } else {
                 lock.solution = [];
                 solutionSteps = [];
                 currentStepIndex = -1;
-                document.getElementById('statusMessage').textContent = '❌ Nie znaleziono rozwiązania!';
+                
+                // Tłumaczenie komunikatu o braku rozwiązania
+                document.getElementById('statusMessage').textContent = t.solution_not_found || '❌ Nie znaleziono rozwiązania!';
                 document.getElementById('statusMessage').style.color = '#a88';
             }
             renderLockVisualization();
