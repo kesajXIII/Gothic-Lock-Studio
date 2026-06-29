@@ -165,7 +165,7 @@
             </div>
 
             <div class="footer">
-                🛡️ <strong>Gothic Lock Studio</strong> — stworzone przez KesajXIII(kesaj13@tlen.pl) | &copy; 2026
+                🛡️ <strong>Gothic Lock Studio</strong> — stworzone przez kesajXIII(kesaj13@tlen.pl)| &copy; 2026
             </div>
         </div>
     </div>
@@ -593,8 +593,6 @@
         // ZARZĄDZANIE ZAMKAMI
         // ============================================================
         function loadLock(index) {
-            console.log('loadLock wywołany dla indeksu:', index);
-            
             if (index < 0 || index >= locks.length) {
                 currentLockIndex = -1;
                 renderLockList();
@@ -630,30 +628,23 @@
             updateSimulationControls(false);
             updateStepInfo();
             
-            // 🔥 AKTYWACJA PRZYCISKÓW
-            console.log('Aktywuję przyciski...');
+            // AKTYWACJA PRZYCISKÓW
             enableControls(true);
-            console.log('Przycisk "Rozwiąż zamek" powinien być aktywny!');
 
             document.getElementById('statusMessage').textContent = `Załadowno: ${lock.name}`;
         }
 
         function enableControls(enabled) {
-            console.log('enableControls wywołany z:', enabled);
             const elements = ['lockName', 'lockDesc', 'pinCount', 'btn-add-rule', 'btn-solve'];
             elements.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    el.disabled = !enabled;
-                    console.log(`  ${id}.disabled = ${el.disabled}`);
-                }
+                if (el) el.disabled = !enabled;
             });
             const addRuleBtn = document.querySelector('.btn-add-rule');
             if (addRuleBtn) addRuleBtn.disabled = !enabled;
         }
 
         function addNewLock() {
-            console.log('addNewLock wywołany!');
             const newLock = new LockData(
                 `Nowy zamek ${locks.length + 1}`,
                 "Nowy zamek do edycji",
@@ -661,7 +652,6 @@
                 [1, 1, 1], []
             );
             locks.push(newLock);
-            console.log('Dodano zamek, liczba zamków:', locks.length);
             loadLock(locks.length - 1);
             document.getElementById('statusMessage').textContent = 'Dodano nowy zamek';
         }
@@ -867,7 +857,6 @@
         // ============================================================
         // INICJACJA
         // ============================================================
-        console.log('🚀 Inicjalizacja aplikacji...');
         currentLockIndex = -1;
         enableControls(false);
         renderLockList();
