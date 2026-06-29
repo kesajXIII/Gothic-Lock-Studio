@@ -793,7 +793,7 @@
 
             <!-- STOPKA -->
             <div class="footer">
-                🛡️ <strong>Gothic Lock Studio</strong> — stworzone przez <a href="#" target="_blank">kesajXIII(kesaj13@tlen.pl)</a> | Wszelkie prawa zastrzeżone &copy; 2026
+                🛡️ <strong>Gothic Lock Studio</strong> — stworzone przez <a href="#" target="_blank">KesajXIII(kesaj13@tlen.pl)</a> | Wszelkie prawa zastrzeżone &copy; 2026
             </div>
         </div>
     </div>
@@ -1197,7 +1197,7 @@
                 document.getElementById('statusMessage').textContent = 'Stan początkowy';
             }
 
-            stopPlayback();
+            // NIE WYWOŁUJEMY stopPlayback() TUTAJ!
         }
 
         function goToFirstStep() { goToStep(0); }
@@ -1222,6 +1222,7 @@
         function startPlayback() {
             if (!solutionSteps || solutionSteps.length === 0) return;
 
+            // Jeśli jesteśmy na ostatnim kroku, zacznij od początku
             if (currentStepIndex >= solutionSteps.length - 1) {
                 goToStep(-1);
             }
@@ -1235,19 +1236,27 @@
             const speedValue = parseInt(speedSlider.value);
             speed = Math.max(200, 1200 - speedValue * 100);
 
-            playNextStep();
+            // Opóźnienie przed pierwszym krokiem
+            setTimeout(() => {
+                if (isPlaying) {
+                    playNextStep();
+                }
+            }, 300);
         }
 
         function playNextStep() {
             if (!isPlaying) return;
 
+            // Jeśli dotarliśmy do końca, zatrzymaj
             if (currentStepIndex >= solutionSteps.length - 1) {
                 stopPlayback();
                 return;
             }
 
+            // Wykonaj kolejny krok
             goToStep(currentStepIndex + 1);
 
+            // Zaplanuj następny krok
             playInterval = setTimeout(playNextStep, speed);
         }
 
@@ -1337,6 +1346,8 @@
             updateStats();
             updateSimulationControls(false);
             updateStepInfo();
+            
+            // Aktywuj przyciski
             enableControls(true);
 
             document.getElementById('statusMessage').textContent = `Załadowno: ${lock.name}`;
@@ -1360,7 +1371,6 @@
                 [1, 1, 1], []
             );
             locks.push(newLock);
-            // AUTOMATYCZNIE ZAŁADUJ NOWY ZAMEK
             loadLock(locks.length - 1);
             document.getElementById('statusMessage').textContent = 'Dodano nowy zamek';
         }
