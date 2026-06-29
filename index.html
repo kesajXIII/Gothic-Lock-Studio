@@ -499,19 +499,28 @@
 
         function updateStats() {
             const lock = locks[currentLockIndex];
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            
             if (!lock) {
                 document.getElementById('stats').innerHTML = `
-                    <span data-i18n="stats_moves">• Najkrótsza liczba ruchów: ---</span>
-                    <span data-i18n="stats_rules">• Liczba reguł: 0</span>
-                    <span data-i18n="stats_pins">• Liczba zapadek: ---</span>
+                    <span>${t.stats_moves || '• Najkrótsza liczba ruchów: ---'}</span>
+                    <span>${t.stats_rules || '• Liczba reguł: 0'}</span>
+                    <span>${t.stats_pins || '• Liczba zapadek: ---'}</span>
                 `;
                 return;
             }
             const solutionCount = lock.solution ? lock.solution.length : 0;
+            
+            // Tłumaczenie statystyk
+            const movesText = t.stats_moves || '• Najkrótsza liczba ruchów:';
+            const rulesText = t.stats_rules || '• Liczba reguł:';
+            const pinsText = t.stats_pins || '• Liczba zapadek:';
+            
             document.getElementById('stats').innerHTML = `
-                <span data-i18n="stats_moves">• Najkrótsza liczba ruchów: ${solutionCount > 0 ? solutionCount : '---'}</span>
-                <span data-i18n="stats_rules">• Liczba reguł: ${lock.rules.length}</span>
-                <span data-i18n="stats_pins">• Liczba zapadek: ${lock.pinCount}</span>
+                <span>${movesText} ${solutionCount > 0 ? solutionCount : '---'}</span>
+                <span>${rulesText} ${lock.rules.length}</span>
+                <span>${pinsText} ${lock.pinCount}</span>
             `;
         }
 
