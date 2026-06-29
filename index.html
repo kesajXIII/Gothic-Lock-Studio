@@ -473,15 +473,18 @@
             });
         }
 
-        function renderSolution() {
+     function renderSolution() {
             const container = document.getElementById('solutionList');
             const lock = locks[currentLockIndex];
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            
             if (!lock) {
-                container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_empty">Dodaj zamek i kliknij "Rozwiąż zamek"</div>`;
+                container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_empty">${t.solution_empty || 'Dodaj zamek i kliknij "Rozwiąż zamek"'}</div>`;
                 return;
             }
             if (!lock.solution || lock.solution.length === 0) {
-                container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_click">Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie</div>`;
+                container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_click">${t.solution_click || 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie'}</div>`;
                 updateSimulationControls(false);
                 return;
             }
@@ -489,7 +492,10 @@
             lock.solution.forEach((step, index) => {
                 const div = document.createElement('div');
                 div.className = `solution-step ${index === currentStepIndex ? 'active' : ''} ${index < currentStepIndex ? 'done' : ''}`;
-                div.textContent = `${index + 1}. ${step}`;
+                
+                // Tłumaczenie kroków
+                const stepText = translateStep(step, lang);
+                div.textContent = `${index + 1}. ${stepText}`;
                 div.onclick = () => goToStep(index);
                 container.appendChild(div);
             });
