@@ -1349,24 +1349,31 @@
             setLanguage('pl');
         }
      // ============================================================
-        // LICZNIK ODWIEDZIN (lokalny)
+        // LICZNIK ODWIEDZIN (lokalny) - POPRAWIONY
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const counter = document.getElementById('visitorCount');
-            if (!counter) return;
-            
+        (function() {
             try {
+                const counter = document.getElementById('visitorCount');
+                if (!counter) return;
+                
                 let count = parseInt(localStorage.getItem('gothicLockVisits')) || 0;
+                
                 if (!sessionStorage.getItem('gothicLockVisited')) {
                     count++;
                     localStorage.setItem('gothicLockVisits', count);
                     sessionStorage.setItem('gothicLockVisited', 'true');
                 }
+                
                 counter.textContent = 'Odwiedziny: ' + count;
+                console.log('✅ Licznik zaktualizowany:', count);
             } catch(e) {
-                counter.textContent = 'Odwiedziny: 1';
+                console.log('❌ Błąd licznika:', e);
+                const counter = document.getElementById('visitorCount');
+                if (counter) {
+                    counter.textContent = 'Odwiedziny: 1';
+                }
             }
-        });
+        })();
         // ============================================================
         // INICJACJA
         // ============================================================
