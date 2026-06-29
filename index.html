@@ -309,7 +309,7 @@
             width: 100%;
         }
 
-        .btn-solve:hover {
+        .btn-solve:hover:not(:disabled) {
             background: #5a8a5a;
         }
 
@@ -1360,6 +1360,7 @@
                 [1, 1, 1], []
             );
             locks.push(newLock);
+            // AUTOMATYCZNIE ZAŁADUJ NOWY ZAMEK
             loadLock(locks.length - 1);
             document.getElementById('statusMessage').textContent = 'Dodano nowy zamek';
         }
