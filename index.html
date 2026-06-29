@@ -356,6 +356,10 @@
                 return;
             }
             const lock = locks[currentLockIndex];
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            const positionLabel = t.position_label || 'Pozycja:';
+            
             for (let i = 0; i < lock.pinCount; i++) {
                 const value = currentPins[i] || 4;
                 const pinDiv = document.createElement('div');
@@ -388,8 +392,10 @@
 
                 const position = document.createElement('div');
                 position.className = 'pin-position';
-                position.textContent = `Pozycja: ${value}/7`;
+                // 🔥 TŁUMACZENIE "Pozycja: X/7"
+                position.textContent = `${positionLabel} ${value}/7`;
                 pinDiv.appendChild(position);
+
                 container.appendChild(pinDiv);
             }
             updateStats();
@@ -1031,6 +1037,7 @@
                 'visualization_title': '1. Stan zamka',
                 'visualization_empty': 'Dodaj zamek aby rozpocząć',
                 'visualization_hint': '💡 Kliknij na otwór aby ustawić bołec',
+                'position_label': 'Pozycja:',
                 
                 // ROZWIĄZANIE
                 'solution_title': 'Rozwiązanie',
@@ -1106,6 +1113,7 @@
                 'visualization_title': '1. Lock state',
                 'visualization_empty': 'Add a lock to start',
                 'visualization_hint': '💡 Click on a hole to set the bolt',
+                'position_label': 'Position:',
                 
                 // ROZWIĄZANIE
                 'solution_title': 'Solution',
@@ -1181,6 +1189,7 @@
                 'visualization_title': '1. Zustand des Schlosses',
                 'visualization_empty': 'Füge ein Schloss hinzu, um zu beginnen',
                 'visualization_hint': '💡 Klicke auf ein Loch, um den Bolzen zu setzen',
+                'position_label': 'Position:',
                 
                 // ROZWIĄZANIE
                 'solution_title': 'Lösung',
@@ -1256,6 +1265,7 @@
                 'visualization_title': '1. Состояние замка',
                 'visualization_empty': 'Добавьте замок, чтобы начать',
                 'visualization_hint': '💡 Нажмите на отверстие, чтобы установить болт',
+                'position_label': 'Позиция:',
                 
                 // ROZWIĄZANIE
                 'solution_title': 'Решение',
