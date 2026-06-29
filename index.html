@@ -1348,25 +1348,26 @@
         } else {
             setLanguage('pl');
         }
-
-          // ============================================================
-        // LICZNIK ODWIEDZIN
+     // ============================================================
+        // LICZNIK ODWIEDZIN (lokalny)
         // ============================================================
-        // Licznik odwiedzin z CountAPI
-        fetch('https://api.countapi.xyz/hit/gothic-lock-studio')
-            .then(res => res.json())
-            .then(data => {
-                const counter = document.getElementById('visitorCount');
-                if (counter) {
-                    counter.textContent = 'Odwiedziny: ' + data.value;
+        (function() {
+            const counter = document.getElementById('visitorCount');
+            if (!counter) return;
+            
+            try {
+                let count = parseInt(localStorage.getItem('gothicLockVisits')) || 0;
+                if (!sessionStorage.getItem('gothicLockVisited')) {
+                    count++;
+                    localStorage.setItem('gothicLockVisits', count);
+                    sessionStorage.setItem('gothicLockVisited', 'true');
                 }
-            })
-            .catch(() => {
-                const counter = document.getElementById('visitorCount');
-                if (counter) {
-                    counter.textContent = 'Odwiedziny: ---';
-                }
-            });
+                counter.textContent = 'Odwiedziny: ' + count;
+            } catch(e) {
+                counter.textContent = 'Odwiedziny: 1';
+            }
+        })();
+        // ============================================================
         // INICJACJA
         // ============================================================
         currentLockIndex = -1;
