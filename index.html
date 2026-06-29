@@ -552,12 +552,28 @@
         // ============================================================
         // KONTROLKI SYMULACJI
         // ============================================================
-        function updateSimulationControls(enabled) {
+     function updateSimulationControls(enabled) {
             const hasSteps = solutionSteps && solutionSteps.length > 0;
-            ['btnFirst', 'btnPrev', 'btnNext', 'btnLast', 'btnPlay'].forEach(id => {
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            
+            ['btnFirst', 'btnPrev', 'btnNext', 'btnLast'].forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) btn.disabled = !enabled || !hasSteps;
             });
+            
+            const playBtn = document.getElementById('btnPlay');
+            if (playBtn) {
+                if (!enabled || !hasSteps) {
+                    playBtn.disabled = true;
+                } else {
+                    playBtn.disabled = false;
+                    if (!isPlaying) {
+                        playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
+                    }
+                }
+            }
+            
             if (hasSteps) {
                 document.getElementById('btnFirst').disabled = currentStepIndex <= 0;
                 document.getElementById('btnPrev').disabled = currentStepIndex <= 0;
@@ -566,10 +582,13 @@
             }
         }
 
-        function updateStepInfo() {
+   function updateStepInfo() {
             const total = solutionSteps ? solutionSteps.length : 0;
             const current = currentStepIndex >= 0 ? currentStepIndex + 1 : 0;
-            document.getElementById('stepInfo').textContent = `Krok: ${current}/${total}`;
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            const stepText = t.sim_step || 'Krok:';
+            document.getElementById('stepInfo').textContent = `${stepText} ${current}/${total}`;
         }
 
         // ============================================================
@@ -599,10 +618,16 @@
             updateSimulationControls(true);
             updateStepInfo();
             
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            
             if (index >= 0 && index < solutionSteps.length) {
-                document.getElementById('statusMessage').textContent = `Krok ${index + 1}/${solutionSteps.length}: ${solutionSteps[index]}`;
+                // Tłumaczenie kroku
+                const stepText = translateStep(solutionSteps[index], lang);
+                const stepLabel = t.sim_step_label || 'Krok';
+                document.getElementById('statusMessage').textContent = `${stepLabel} ${index + 1}/${solutionSteps.length}: ${stepText}`;
             } else {
-                document.getElementById('statusMessage').textContent = 'Stan początkowy';
+                document.getElementById('statusMessage').textContent = t.sim_initial || 'Stan początkowy';
             }
         }
 
@@ -622,29 +647,21 @@
             }
         }
 
-        function startPlayback() {
+    function startPlayback() {
             if (!solutionSteps || solutionSteps.length === 0) return;
             if (currentStepIndex >= solutionSteps.length - 1) {
                 goToStep(-1);
             }
             isPlaying = true;
             const playBtn = document.getElementById('btnPlay');
-            playBtn.textContent = '⏸ Pauza';
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            playBtn.textContent = t.sim_pause || '⏸ Pauza';
             playBtn.className = 'btn-play playing';
             const speedSlider = document.getElementById('speedSlider');
             const speedValue = parseInt(speedSlider.value);
             speed = Math.max(200, 1200 - speedValue * 100);
             setTimeout(() => { if (isPlaying) playNextStep(); }, 300);
-        }
-
-        function playNextStep() {
-            if (!isPlaying) return;
-            if (currentStepIndex >= solutionSteps.length - 1) {
-                stopPlayback();
-                return;
-            }
-            goToStep(currentStepIndex + 1);
-            playInterval = setTimeout(playNextStep, speed);
         }
 
         function stopPlayback() {
@@ -654,7 +671,9 @@
                 playInterval = null;
             }
             const playBtn = document.getElementById('btnPlay');
-            playBtn.textContent = '▶ Odtwarzaj';
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
             playBtn.className = 'btn-play';
         }
 
@@ -767,16 +786,21 @@
             );
             locks.push(newLock);
             loadLock(locks.length - 1);
-            document.getElementById('statusMessage').textContent = 'Dodano nowy zamek';
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            document.getElementById('statusMessage').textContent = t.added_lock || 'Dodano nowy zamek';
         }
 
         function deleteCurrentLock() {
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            
             if (currentLockIndex < 0 || currentLockIndex >= locks.length) {
-                document.getElementById('statusMessage').textContent = 'Nie ma zamka do usunięcia';
+                document.getElementById('statusMessage').textContent = t.no_lock_to_delete || 'Nie ma zamka do usunięcia';
                 return;
             }
             if (locks.length === 0) {
-                document.getElementById('statusMessage').textContent = 'Brak zamków do usunięcia';
+                document.getElementById('statusMessage').textContent = t.no_locks_to_delete || 'Brak zamków do usunięcia';
                 return;
             }
             const lock = locks[currentLockIndex];
@@ -786,7 +810,7 @@
             if (locks.length === 0) {
                 currentLockIndex = -1;
                 enableControls(false);
-                document.getElementById('statusMessage').textContent = 'Usunięto zamek. Dodaj nowy.';
+                document.getElementById('statusMessage').textContent = t.lock_deleted || 'Usunięto zamek. Dodaj nowy.';
                 renderLockList();
                 renderLockVisualization();
                 renderRules();
@@ -800,7 +824,7 @@
                 currentLockIndex = locks.length - 1;
             }
             loadLock(currentLockIndex);
-            document.getElementById('statusMessage').textContent = 'Usunięto zamek';
+            document.getElementById('statusMessage').textContent = t.lock_deleted || 'Usunięto zamek';
         }
 
         // ============================================================
@@ -987,6 +1011,10 @@
                 'no_locks': 'Brak zamków – kliknij "➕ Nowy"',
                 'add_new': '➕ Nowy',
                 'delete': '🗑 Usuń wybrany',
+                'no_lock_to_delete': 'Nie ma zamka do usunięcia',
+                'no_locks_to_delete': 'Brak zamków do usunięcia',
+                'lock_deleted': 'Usunięto zamek',
+                'added_lock': 'Dodano nowy zamek',
                 
                 // EDYTOR
                 'editor_title': 'EDYTOR ZAMKA',
@@ -1043,7 +1071,10 @@
                 'sim_next': 'Następny ▶',
                 'sim_last': 'Ostatni ⏭',
                 'sim_speed': 'Prędkość:',
-                'sim_step': 'Krok: 0/0',
+                'sim_step': 'Krok:',
+                'sim_step_label': 'Krok',
+                'sim_initial': 'Stan początkowy',
+                'added_lock': 'Dodano nowy zamek',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
@@ -1056,6 +1087,10 @@
                 'no_locks': 'No locks – click "➕ New"',
                 'add_new': '➕ New',
                 'delete': '🗑 Delete selected',
+                'no_lock_to_delete': 'No lock to delete',
+                'no_locks_to_delete': 'No locks to delete',
+                'lock_deleted': 'Lock deleted',
+                'added_lock': 'New lock added',
                 
                 // EDYTOR
                 'editor_title': 'LOCK EDITOR',
@@ -1112,7 +1147,10 @@
                 'sim_next': 'Next ▶',
                 'sim_last': 'Last ⏭',
                 'sim_speed': 'Speed:',
-                'sim_step': 'Step: 0/0',
+                'sim_step': 'Step:',
+                'sim_step_label': 'Step',
+                'sim_initial': 'Initial state',
+                'added_lock': 'New lock added',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
@@ -1125,6 +1163,10 @@
                 'no_locks': 'Keine Schlösser – klicke "➕ Neu"',
                 'add_new': '➕ Neu',
                 'delete': '🗑 Ausgewählte löschen',
+                'no_lock_to_delete': 'Kein Schloss zum Löschen',
+                'no_locks_to_delete': 'Keine Schlösser zum Löschen',
+                'lock_deleted': 'Schloss gelöscht',
+                'added_lock': 'Neues Schloss hinzugefügt',
                 
                 // EDYTOR
                 'editor_title': 'SCHLOSS-EDITOR',
@@ -1181,7 +1223,10 @@
                 'sim_next': 'Nächste ▶',
                 'sim_last': 'Letzte ⏭',
                 'sim_speed': 'Geschwindigkeit:',
-                'sim_step': 'Schritt: 0/0',
+                'sim_step': 'Schritt:',
+                'sim_step_label': 'Schritt',
+                'sim_initial': 'Anfangszustand',
+                'added_lock': 'Neues Schloss hinzugefügt',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
@@ -1194,6 +1239,10 @@
                 'no_locks': 'Нет замков – нажмите "➕ Новый"',
                 'add_new': '➕ Новый',
                 'delete': '🗑 Удалить выбранный',
+                'no_lock_to_delete': 'Нет замка для удаления',
+                'no_locks_to_delete': 'Нет замков для удаления',
+                'lock_deleted': 'Замок удален',
+                'added_lock': 'Новый замок добавлен',
                 
                 // EDYTOR
                 'editor_title': 'РЕДАКТОР ЗАМКА',
@@ -1243,7 +1292,7 @@
                 'direction_left': '←',
                 
                 
-                // SYMULACJA
+               // SYMULACJA
                 'sim_first': '⏮ Первый',
                 'sim_prev': '◀ Предыдущий',
                 'sim_play': '▶ Воспроизвести',
@@ -1251,7 +1300,10 @@
                 'sim_next': 'Следующий ▶',
                 'sim_last': 'Последний ⏭',
                 'sim_speed': 'Скорость:',
-                'sim_step': 'Шаг: 0/0',
+                'sim_step': 'Шаг:',
+                'sim_step_label': 'Шаг',
+                'sim_initial': 'Начальное состояние',
+                'added_lock': 'Новый замок добавлен',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
