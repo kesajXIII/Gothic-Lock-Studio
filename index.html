@@ -1345,7 +1345,94 @@
             setLanguage('pl');
         }
 
+               // ============================================================
+        // ODTWARZANIE - POPRAWIONE
         // ============================================================
+        function togglePlay() {
+            console.log('🔄 togglePlay wywołany, isPlaying:', isPlaying);
+            if (isPlaying) {
+                stopPlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            console.log('🎬 startPlayback wywołany');
+            
+            if (!solutionSteps || solutionSteps.length === 0) {
+                console.log('  ❌ Brak kroków!');
+                return;
+            }
+            if (currentStepIndex >= solutionSteps.length - 1) {
+                console.log('  🔄 Resetuję do początku');
+                goToStep(-1);
+            }
+            
+            isPlaying = true;
+            const playBtn = document.getElementById('btnPlay');
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            if (playBtn) {
+                playBtn.textContent = t.sim_pause || '⏸ Pauza';
+                playBtn.className = 'btn-play playing';
+            }
+            
+            const speedSlider = document.getElementById('speedSlider');
+            const speedValue = parseInt(speedSlider.value);
+            speed = Math.max(200, 1200 - speedValue * 100);
+            console.log('  ✅ Odtwarzanie rozpoczęte! Prędkość:', speed);
+            
+            // Wykonaj pierwszy krok po krótkim opóźnieniu
+            setTimeout(() => { 
+                if (isPlaying) {
+                    console.log('  🚀 Pierwszy krok...');
+                    playNextStep();
+                }
+            }, 300);
+        }
+
+        function playNextStep() {
+            console.log('▶️ playNextStep wywołany');
+            console.log('  isPlaying:', isPlaying);
+            console.log('  currentStepIndex:', currentStepIndex);
+            console.log('  solutionSteps.length:', solutionSteps ? solutionSteps.length : 0);
+            
+            if (!isPlaying) {
+                console.log('  ❌ Odtwarzanie zatrzymane!');
+                return;
+            }
+            if (!solutionSteps || solutionSteps.length === 0) {
+                console.log('  ❌ Brak kroków!');
+                stopPlayback();
+                return;
+            }
+            if (currentStepIndex >= solutionSteps.length - 1) {
+                console.log('  ⏹ Ostatni krok! Zatrzymuję.');
+                stopPlayback();
+                return;
+            }
+            console.log('  ➡️ Wykonuję krok:', currentStepIndex + 1);
+            goToStep(currentStepIndex + 1);
+            console.log('  ⏳ Planuję następny krok za', speed, 'ms');
+            playInterval = setTimeout(playNextStep, speed);
+        }
+
+        function stopPlayback() {
+            console.log('⏹ stopPlayback wywołany');
+            isPlaying = false;
+            if (playInterval) {
+                clearTimeout(playInterval);
+                playInterval = null;
+            }
+            const playBtn = document.getElementById('btnPlay');
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            if (playBtn) {
+                playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
+                playBtn.className = 'btn-play';
+            }
+        }
         // INICJACJA
         // ============================================================
         currentLockIndex = -1;
