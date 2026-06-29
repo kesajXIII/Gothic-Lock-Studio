@@ -914,12 +914,31 @@
             speed = Math.max(200, 1200 - val * 100);
         });
 
-        // ============================================================
-                // ============================================================
-        // TŁUMACZENIA – 4 JĘZYKI
+         // ============================================================
+        // TŁUMACZENIA – PEŁNE 4 JĘZYKI
         // ============================================================
         const translations = {
             'pl': {
+                // MENU
+                'my_locks': 'MOJE ZAMKI',
+                'no_locks': 'Brak zamków – kliknij "➕ Nowy"',
+                'add_new': '➕ Nowy',
+                'delete': '🗑 Usuń wybrany',
+                
+                // EDYTOR
+                'editor_title': 'EDYTOR ZAMKA',
+                'name': 'Nazwa:',
+                'name_placeholder': 'Wpisz nazwę zamka',
+                'description': 'Opis:',
+                'description_placeholder': 'Wpisz opis zamka',
+                'pin_count': 'Ilość zapadek:',
+                'rules': 'Reguły',
+                'no_rules': 'Brak reguł',
+                'add_rule': '+ Dodaj regułę',
+                'solve': '🔓 Rozwiąż zamek',
+                'status': 'Stan: Dodaj nowy zamek aby rozpocząć',
+                
+                // LEGENDA
                 'legend_title': 'Co oznaczają symbole?',
                 'legend_same': 'ten sam kierunek',
                 'legend_same_desc': ' – zapadka przesuwa się w tę samą stronę',
@@ -929,11 +948,62 @@
                 'legend_no_rule_desc': ' – zapadka porusza się TYLKO sama (nie wpływa na inne)',
                 'legend_important': 'Ważne:',
                 'legend_important_desc': 'Jeśli nie chcesz, aby zapadka wpływała na inne – nie dodawaj dla niej reguły.',
+                
+                // STATYSTYKI
+                'stats_title': 'Statystyki',
+                'stats_moves': 'Najkrótsza liczba ruchów',
+                'stats_rules': 'Liczba reguł',
+                'stats_pins': 'Liczba zapadek',
+                'stats_default': '---',
+                
+                // WIZUALIZACJA
+                'visualization_title': '1. Stan zamka',
+                'visualization_empty': 'Dodaj zamek aby rozpocząć',
+                'visualization_hint': '💡 Kliknij na otwór aby ustawić bołec',
+                
+                // ROZWIĄZANIE
+                'solution_title': 'Rozwiązanie',
+                'solution_empty': 'Dodaj zamek i kliknij "Rozwiąż zamek"',
+                'solution_click': 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie',
+                'solution_found': '✅ Rozwiązanie znalezione!',
+                'solution_not_found': '❌ Nie znaleziono rozwiązania!',
+                
+                // SYMULACJA
+                'sim_first': '⏮ Pierwszy',
+                'sim_prev': '◀ Poprzedni',
+                'sim_play': '▶ Odtwarzaj',
+                'sim_pause': '⏸ Pauza',
+                'sim_next': 'Następny ▶',
+                'sim_last': 'Ostatni ⏭',
+                'sim_speed': 'Prędkość:',
+                'sim_step': 'Krok',
+                
+                // STOPKA
                 'footer': 'Gothic Lock Studio',
-                'footer_author': 'stworzone przez KesajXII(kesaj13@tlen.pl)',
+                'footer_author': 'stworzone przez TwojeImię',
                 'footer_rights': 'Wszelkie prawa zastrzeżone'
             },
             'en': {
+                // MENU
+                'my_locks': 'MY LOCKS',
+                'no_locks': 'No locks – click "➕ New"',
+                'add_new': '➕ New',
+                'delete': '🗑 Delete selected',
+                
+                // EDYTOR
+                'editor_title': 'LOCK EDITOR',
+                'name': 'Name:',
+                'name_placeholder': 'Enter lock name',
+                'description': 'Description:',
+                'description_placeholder': 'Enter lock description',
+                'pin_count': 'Number of pins:',
+                'rules': 'Rules',
+                'no_rules': 'No rules',
+                'add_rule': '+ Add rule',
+                'solve': '🔓 Solve lock',
+                'status': 'Status: Add a new lock to start',
+                
+                // LEGENDA
                 'legend_title': 'What do the symbols mean?',
                 'legend_same': 'same direction',
                 'legend_same_desc': ' – the pin moves in the same direction',
@@ -943,11 +1013,62 @@
                 'legend_no_rule_desc': ' – the pin moves ONLY by itself (does not affect others)',
                 'legend_important': 'Important:',
                 'legend_important_desc': "If you don't want the pin to affect others – do not add a rule for it.",
+                
+                // STATYSTYKI
+                'stats_title': 'Statistics',
+                'stats_moves': 'Shortest number of moves',
+                'stats_rules': 'Number of rules',
+                'stats_pins': 'Number of pins',
+                'stats_default': '---',
+                
+                // WIZUALIZACJA
+                'visualization_title': '1. Lock state',
+                'visualization_empty': 'Add a lock to start',
+                'visualization_hint': '💡 Click on a hole to set the bolt',
+                
+                // ROZWIĄZANIE
+                'solution_title': 'Solution',
+                'solution_empty': 'Add a lock and click "Solve lock"',
+                'solution_click': 'Click "Solve lock" to find a solution',
+                'solution_found': '✅ Solution found!',
+                'solution_not_found': '❌ No solution found!',
+                
+                // SYMULACJA
+                'sim_first': '⏮ First',
+                'sim_prev': '◀ Previous',
+                'sim_play': '▶ Play',
+                'sim_pause': '⏸ Pause',
+                'sim_next': 'Next ▶',
+                'sim_last': 'Last ⏭',
+                'sim_speed': 'Speed:',
+                'sim_step': 'Step',
+                
+                // STOPKA
                 'footer': 'Gothic Lock Studio',
-                'footer_author': 'created by KesajXII(kesaj13@tlen.pl)',
+                'footer_author': 'created by TwojeImię',
                 'footer_rights': 'All rights reserved'
             },
             'de': {
+                // MENU
+                'my_locks': 'MEINE SCHLÖSSER',
+                'no_locks': 'Keine Schlösser – klicke "➕ Neu"',
+                'add_new': '➕ Neu',
+                'delete': '🗑 Ausgewählte löschen',
+                
+                // EDYTOR
+                'editor_title': 'SCHLOSS-EDITOR',
+                'name': 'Name:',
+                'name_placeholder': 'Name des Schlosses eingeben',
+                'description': 'Beschreibung:',
+                'description_placeholder': 'Beschreibung des Schlosses eingeben',
+                'pin_count': 'Anzahl der Stifte:',
+                'rules': 'Regeln',
+                'no_rules': 'Keine Regeln',
+                'add_rule': '+ Regel hinzufügen',
+                'solve': '🔓 Schloss lösen',
+                'status': 'Status: Füge ein neues Schloss hinzu, um zu beginnen',
+                
+                // LEGENDA
                 'legend_title': 'Was bedeuten die Symbole?',
                 'legend_same': 'gleiche Richtung',
                 'legend_same_desc': ' – der Stift bewegt sich in die gleiche Richtung',
@@ -957,11 +1078,62 @@
                 'legend_no_rule_desc': ' – der Stift bewegt sich NUR von selbst (beeinflusst andere nicht)',
                 'legend_important': 'Wichtig:',
                 'legend_important_desc': 'Wenn du nicht möchtest, dass der Stift andere beeinflusst – füge keine Regel für ihn hinzu.',
+                
+                // STATYSTYKI
+                'stats_title': 'Statistiken',
+                'stats_moves': 'Kürzeste Anzahl von Zügen',
+                'stats_rules': 'Anzahl der Regeln',
+                'stats_pins': 'Anzahl der Stifte',
+                'stats_default': '---',
+                
+                // WIZUALIZACJA
+                'visualization_title': '1. Zustand des Schlosses',
+                'visualization_empty': 'Füge ein Schloss hinzu, um zu beginnen',
+                'visualization_hint': '💡 Klicke auf ein Loch, um den Bolzen zu setzen',
+                
+                // ROZWIĄZANIE
+                'solution_title': 'Lösung',
+                'solution_empty': 'Füge ein Schloss hinzu und klicke "Schloss lösen"',
+                'solution_click': 'Klicke "Schloss lösen", um eine Lösung zu finden',
+                'solution_found': '✅ Lösung gefunden!',
+                'solution_not_found': '❌ Keine Lösung gefunden!',
+                
+                // SYMULACJA
+                'sim_first': '⏮ Erste',
+                'sim_prev': '◀ Vorherige',
+                'sim_play': '▶ Abspielen',
+                'sim_pause': '⏸ Pause',
+                'sim_next': 'Nächste ▶',
+                'sim_last': 'Letzte ⏭',
+                'sim_speed': 'Geschwindigkeit:',
+                'sim_step': 'Schritt',
+                
+                // STOPKA
                 'footer': 'Gothic Lock Studio',
-                'footer_author': 'erstellt von KesajXII(kesaj13@tlen.pl)',
+                'footer_author': 'erstellt von TwojeImię',
                 'footer_rights': 'Alle Rechte vorbehalten'
             },
             'ru': {
+                // MENU
+                'my_locks': 'МОИ ЗАМКИ',
+                'no_locks': 'Нет замков – нажмите "➕ Новый"',
+                'add_new': '➕ Новый',
+                'delete': '🗑 Удалить выбранный',
+                
+                // EDYTOR
+                'editor_title': 'РЕДАКТОР ЗАМКА',
+                'name': 'Название:',
+                'name_placeholder': 'Введите название замка',
+                'description': 'Описание:',
+                'description_placeholder': 'Введите описание замка',
+                'pin_count': 'Количество пинов:',
+                'rules': 'Правила',
+                'no_rules': 'Нет правил',
+                'add_rule': '+ Добавить правило',
+                'solve': '🔓 Решить замок',
+                'status': 'Состояние: Добавьте новый замок, чтобы начать',
+                
+                // LEGENDA
                 'legend_title': 'Что означают символы?',
                 'legend_same': 'то же направление',
                 'legend_same_desc': ' – пин движется в том же направлении',
@@ -971,8 +1143,39 @@
                 'legend_no_rule_desc': ' – пин движется ТОЛЬКО сам (не влияет на другие)',
                 'legend_important': 'Важно:',
                 'legend_important_desc': 'Если вы не хотите, чтобы пин влиял на другие – не добавляйте для него правило.',
+                
+                // STATYSTYKI
+                'stats_title': 'Статистика',
+                'stats_moves': 'Наименьшее количество ходов',
+                'stats_rules': 'Количество правил',
+                'stats_pins': 'Количество пинов',
+                'stats_default': '---',
+                
+                // WIZUALIZACJA
+                'visualization_title': '1. Состояние замка',
+                'visualization_empty': 'Добавьте замок, чтобы начать',
+                'visualization_hint': '💡 Нажмите на отверстие, чтобы установить болт',
+                
+                // ROZWIĄZANIE
+                'solution_title': 'Решение',
+                'solution_empty': 'Добавьте замок и нажмите "Решить замок"',
+                'solution_click': 'Нажмите "Решить замок", чтобы найти решение',
+                'solution_found': '✅ Решение найдено!',
+                'solution_not_found': '❌ Решение не найдено!',
+                
+                // SYMULACJA
+                'sim_first': '⏮ Первый',
+                'sim_prev': '◀ Предыдущий',
+                'sim_play': '▶ Воспроизвести',
+                'sim_pause': '⏸ Пауза',
+                'sim_next': 'Следующий ▶',
+                'sim_last': 'Последний ⏭',
+                'sim_speed': 'Скорость:',
+                'sim_step': 'Шаг',
+                
+                // STOPKA
                 'footer': 'Gothic Lock Studio',
-                'footer_author': 'создано KesajXII(kesaj13@tlen.pl)',
+                'footer_author': 'создано TwojeImię',
                 'footer_rights': 'Все права защищены'
             }
         };
@@ -984,7 +1187,6 @@
             const t = translations[lang];
             if (!t) return;
             
-            // Tłumaczenie elementów na stronie
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (t[key] !== undefined) {
@@ -992,11 +1194,9 @@
                 }
             });
             
-            // Zapisz wybrany język w localStorage
             localStorage.setItem('gothic-lock-language', lang);
         }
 
-        // Załaduj zapisany język
         const savedLang = localStorage.getItem('gothic-lock-language');
         if (savedLang && translations[savedLang]) {
             setLanguage(savedLang);
