@@ -81,9 +81,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- ============================================================
-        KOLUMNA 1 - LISTA ZAMKÓW
-        ============================================================ -->
+        <!-- KOLUMNA 1 -->
         <div>
             <div class="panel">
                 <div class="panel-title" data-i18n="my_locks">MOJE ZAMKI</div>
@@ -95,23 +93,18 @@
             </div>
         </div>
 
-        <!-- ============================================================
-        KOLUMNA 2 - EDYTOR
-        ============================================================ -->
+        <!-- KOLUMNA 2 -->
         <div>
             <div class="panel">
                 <div class="panel-title" data-i18n="editor_title">EDYTOR ZAMKA</div>
-
                 <div class="editor-field">
                     <label data-i18n="name">Nazwa:</label>
                     <input type="text" id="lockName" placeholder="Wpisz nazwę zamka" disabled data-i18n-placeholder="name_placeholder" />
                 </div>
-
                 <div class="editor-field">
                     <label data-i18n="description">Opis:</label>
                     <input type="text" id="lockDesc" placeholder="Wpisz opis zamka" disabled data-i18n-placeholder="description_placeholder" />
                 </div>
-
                 <div class="editor-field">
                     <label data-i18n="pin_count">Ilość zapadek:</label>
                     <select id="pinCount" disabled>
@@ -121,7 +114,6 @@
                         <option value="6">6</option>
                     </select>
                 </div>
-
                 <div style="margin-top:15px;">
                     <div style="color:#b8a87a; font-weight:bold; margin-bottom:10px;" data-i18n="rules">Reguły</div>
                     <div class="rules-list" id="rulesList">
@@ -130,9 +122,7 @@
                     <button class="btn-add-rule" onclick="addRule()" disabled data-i18n="add_rule">+ Dodaj regułę</button>
                 </div>
 
-                <!-- ============================================================
-                LEGENDA – OBJAŚNIENIE SYMBOLI
-                ============================================================ -->
+                <!-- LEGENDA -->
                 <div class="legend-box" style="background: #1a1a1a; border: 1px solid #4a3a2a; border-radius: 6px; padding: 12px; margin-top: 10px;">
                     <div style="color: #b8a87a; font-weight: bold; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #4a3a2a; padding-bottom: 8px;">
                         📖 <span data-i18n="legend_title">Co oznaczają symbole?</span>
@@ -170,9 +160,6 @@
                 <div class="status" id="statusMessage" data-i18n="status">Stan: Dodaj nowy zamek aby rozpocząć</div>
             </div>
 
-            <!-- ============================================================
-            STATYSTYKI
-            ============================================================ -->
             <div class="panel">
                 <div class="panel-title" data-i18n="stats_title">Statystyki</div>
                 <div class="stats" id="stats">
@@ -183,9 +170,7 @@
             </div>
         </div>
 
-        <!-- ============================================================
-        KOLUMNA 3 - WIZUALIZACJA I ROZWIĄZANIE
-        ============================================================ -->
+        <!-- KOLUMNA 3 -->
         <div>
             <div class="panel">
                 <div class="panel-title" data-i18n="visualization_title">1. Stan zamka</div>
@@ -217,7 +202,7 @@
                 </div>
             </div>
 
-            <!-- PRZYCISKI ZMIANY JĘZYKA -->
+            <!-- PRZYCISKI JĘZYKA -->
             <div class="language-selector" style="display: flex; justify-content: center; gap: 10px; padding: 10px 0; flex-wrap: wrap; border-bottom: 1px solid #4a3a2a; margin-bottom: 10px;">
                 <button onclick="setLanguage('pl')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇵🇱 Polski</button>
                 <button onclick="setLanguage('en')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇬🇧 English</button>
@@ -225,7 +210,6 @@
                 <button onclick="setLanguage('ru')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇷🇺 Русский</button>
             </div>
 
-            <!-- STOPKA -->
             <div class="footer">
                 🛡️ <strong data-i18n="footer">Gothic Lock Studio</strong> — <span data-i18n="footer_author">stworzone przez kesajXIII (kesaj13@tlen.pl)</span> | <span data-i18n="footer_rights">Wszelkie prawa zastrzeżone</span> &copy; 2026
             </div>
@@ -410,8 +394,7 @@
             }
             updateStats();
         }
-
-        function renderRules() {
+                function renderRules() {
             const container = document.getElementById('rulesList');
             const lock = locks[currentLockIndex];
             if (!lock) {
@@ -472,27 +455,8 @@
                 container.appendChild(row);
             });
         }
-        
-        // ============================================================
-        // TŁUMACZENIE KROKÓW ROZWIĄZANIA
-        // ============================================================
-        function translateStep(step, lang) {
-            const t = translations[lang];
-            if (!t) return step;
-            
-            // Tłumaczenie "Zapadka X →" i "Zapadka X ←"
-            const pinMatch = step.match(/Zapadka (\d+) (→|←)/);
-            if (pinMatch) {
-                const pinNumber = pinMatch[1];
-                const direction = pinMatch[2];
-                const pinWord = t.pin_word || 'Zapadka';
-                const directionWord = direction === '→' ? (t.direction_right || '→') : (t.direction_left || '←');
-                return `${pinWord} ${pinNumber} ${directionWord}`;
-            }
-            
-            return step;
-        }
-     function renderSolution() {
+
+        function renderSolution() {
             const container = document.getElementById('solutionList');
             const lock = locks[currentLockIndex];
             const lang = currentLanguage || 'pl';
@@ -511,8 +475,6 @@
             lock.solution.forEach((step, index) => {
                 const div = document.createElement('div');
                 div.className = `solution-step ${index === currentStepIndex ? 'active' : ''} ${index < currentStepIndex ? 'done' : ''}`;
-                
-                // Tłumaczenie kroków
                 const stepText = translateStep(step, lang);
                 div.textContent = `${index + 1}. ${stepText}`;
                 div.onclick = () => goToStep(index);
@@ -536,8 +498,6 @@
                 return;
             }
             const solutionCount = lock.solution ? lock.solution.length : 0;
-            
-            // Tłumaczenie statystyk
             const movesText = t.stats_moves || '• Najkrótsza liczba ruchów:';
             const rulesText = t.stats_rules || '• Liczba reguł:';
             const pinsText = t.stats_pins || '• Liczba zapadek:';
@@ -552,7 +512,7 @@
         // ============================================================
         // KONTROLKI SYMULACJI
         // ============================================================
-     function updateSimulationControls(enabled) {
+        function updateSimulationControls(enabled) {
             const hasSteps = solutionSteps && solutionSteps.length > 0;
             const lang = currentLanguage || 'pl';
             const t = translations[lang];
@@ -570,6 +530,7 @@
                     playBtn.disabled = false;
                     if (!isPlaying) {
                         playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
+                        playBtn.className = 'btn-play';
                     }
                 }
             }
@@ -582,7 +543,7 @@
             }
         }
 
-   function updateStepInfo() {
+        function updateStepInfo() {
             const total = solutionSteps ? solutionSteps.length : 0;
             const current = currentStepIndex >= 0 ? currentStepIndex + 1 : 0;
             const lang = currentLanguage || 'pl';
@@ -622,13 +583,13 @@
             const t = translations[lang];
             
             if (index >= 0 && index < solutionSteps.length) {
-                // Tłumaczenie kroku
                 const stepText = translateStep(solutionSteps[index], lang);
                 const stepLabel = t.sim_step_label || 'Krok';
                 document.getElementById('statusMessage').textContent = `${stepLabel} ${index + 1}/${solutionSteps.length}: ${stepText}`;
             } else {
                 document.getElementById('statusMessage').textContent = t.sim_initial || 'Stan początkowy';
             }
+            // NIE MA stopPlayback() - TO JEST WAŻNE!
         }
 
         function goToFirstStep() { goToStep(0); }
@@ -647,7 +608,7 @@
             }
         }
 
-    function startPlayback() {
+        function startPlayback() {
             if (!solutionSteps || solutionSteps.length === 0) return;
             if (currentStepIndex >= solutionSteps.length - 1) {
                 goToStep(-1);
@@ -662,6 +623,20 @@
             const speedValue = parseInt(speedSlider.value);
             speed = Math.max(200, 1200 - speedValue * 100);
             setTimeout(() => { if (isPlaying) playNextStep(); }, 300);
+        }
+
+        function playNextStep() {
+            if (!isPlaying) return;
+            if (!solutionSteps || solutionSteps.length === 0) {
+                stopPlayback();
+                return;
+            }
+            if (currentStepIndex >= solutionSteps.length - 1) {
+                stopPlayback();
+                return;
+            }
+            goToStep(currentStepIndex + 1);
+            playInterval = setTimeout(playNextStep, speed);
         }
 
         function stopPlayback() {
@@ -746,16 +721,12 @@
             updateSimulationControls(false);
             updateStepInfo();
             
-            // 🔥 AKTYWACJA PRZYCISKÓW
             enableControls(true);
-
             document.getElementById('statusMessage').textContent = `Załadowno: ${lock.name}`;
         }
 
         function enableControls(enabled) {
             console.log('enableControls wywołany z:', enabled);
-            
-            // Bezpośrednie odwołania do przycisków
             const btnSolve = document.querySelector('.btn-solve');
             const btnRule = document.querySelector('.btn-add-rule');
             
@@ -767,7 +738,6 @@
                 btnRule.disabled = !enabled;
             }
             
-            // Pola formularza
             const lockName = document.getElementById('lockName');
             const lockDesc = document.getElementById('lockDesc');
             const pinCount = document.getElementById('pinCount');
@@ -878,7 +848,7 @@
             updateStepInfo();
         }
 
-       // ============================================================
+        // ============================================================
         // ROZWIĄZYWANIE
         // ============================================================
         function solveLock() {
@@ -891,7 +861,6 @@
             lock.initialPins = [...currentPins];
             const solution = solver.solve(lock);
 
-            // Pobierz aktualny język
             const lang = currentLanguage || 'pl';
             const t = translations[lang];
 
@@ -902,17 +871,14 @@
                 highlightedPin = -1;
                 stopPlayback();
                 currentPins = [...lock.initialPins];
-                
-                // Tłumaczenie komunikatu o znalezieniu rozwiązania
                 const foundMsg = t.solution_found || '✅ Rozwiązanie znalezione!';
-                document.getElementById('statusMessage').textContent = `${foundMsg} ${solution.length} ${t.solution_moves || 'ruchów'}`;
+                const movesWord = t.solution_moves || 'ruchów';
+                document.getElementById('statusMessage').textContent = `${foundMsg} ${solution.length} ${movesWord}`;
                 document.getElementById('statusMessage').style.color = '#8a8';
             } else {
                 lock.solution = [];
                 solutionSteps = [];
                 currentStepIndex = -1;
-                
-                // Tłumaczenie komunikatu o braku rozwiązania
                 document.getElementById('statusMessage').textContent = t.solution_not_found || '❌ Nie znaleziono rozwiązania!';
                 document.getElementById('statusMessage').style.color = '#a88';
             }
@@ -946,6 +912,21 @@
             if (selfNewValue >= 1 && selfNewValue <= 7) {
                 pins[pinIndex] = selfNewValue;
             }
+        }
+
+        function translateStep(step, lang) {
+            const t = translations[lang];
+            if (!t) return step;
+            
+            const pinMatch = step.match(/Zapadka (\d+) (→|←)/);
+            if (pinMatch) {
+                const pinNumber = pinMatch[1];
+                const direction = pinMatch[2];
+                const pinWord = t.pin_word || 'Zapadka';
+                const directionWord = direction === '→' ? (t.direction_right || '→') : (t.direction_left || '←');
+                return `${pinWord} ${pinNumber} ${directionWord}`;
+            }
+            return step;
         }
 
         // ============================================================
@@ -1000,8 +981,7 @@
             document.getElementById('speedLabel').textContent = (val / 5).toFixed(1) + 'x';
             speed = Math.max(200, 1200 - val * 100);
         });
-
-        // ============================================================
+                // ============================================================
         // TŁUMACZENIA – PEŁNE 4 JĘZYKI
         // ============================================================
         const translations = {
@@ -1042,9 +1022,9 @@
                 
                 // STATYSTYKI
                 'stats_title': 'Statystyki',
-                'stats_moves': '• Najkrótsza liczba ruchów: ---',
-                'stats_rules': '• Liczba reguł: 0',
-                'stats_pins': '• Liczba zapadek: ---',
+                'stats_moves': '• Najkrótsza liczba ruchów:',
+                'stats_rules': '• Liczba reguł:',
+                'stats_pins': '• Liczba zapadek:',
                 'stats_default': '---',
                 
                 // WIZUALIZACJA
@@ -1074,7 +1054,6 @@
                 'sim_step': 'Krok:',
                 'sim_step_label': 'Krok',
                 'sim_initial': 'Stan początkowy',
-                'added_lock': 'Dodano nowy zamek',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
@@ -1118,9 +1097,9 @@
                 
                 // STATYSTYKI
                 'stats_title': 'Statistics',
-                'stats_moves': '• Shortest number of moves: ---',
-                'stats_rules': '• Number of rules: 0',
-                'stats_pins': '• Number of pins: ---',
+                'stats_moves': '• Shortest number of moves:',
+                'stats_rules': '• Number of rules:',
+                'stats_pins': '• Number of pins:',
                 'stats_default': '---',
                 
                 // WIZUALIZACJA
@@ -1150,7 +1129,6 @@
                 'sim_step': 'Step:',
                 'sim_step_label': 'Step',
                 'sim_initial': 'Initial state',
-                'added_lock': 'New lock added',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
@@ -1194,9 +1172,9 @@
                 
                 // STATYSTYKI
                 'stats_title': 'Statistiken',
-                'stats_moves': '• Kürzeste Anzahl von Zügen: ---',
-                'stats_rules': '• Anzahl der Regeln: 0',
-                'stats_pins': '• Anzahl der Stifte: ---',
+                'stats_moves': '• Kürzeste Anzahl von Zügen:',
+                'stats_rules': '• Anzahl der Regeln:',
+                'stats_pins': '• Anzahl der Stifte:',
                 'stats_default': '---',
                 
                 // WIZUALIZACJA
@@ -1226,7 +1204,6 @@
                 'sim_step': 'Schritt:',
                 'sim_step_label': 'Schritt',
                 'sim_initial': 'Anfangszustand',
-                'added_lock': 'Neues Schloss hinzugefügt',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
@@ -1270,9 +1247,9 @@
                 
                 // STATYSTYKI
                 'stats_title': 'Статистика',
-                'stats_moves': '• Наименьшее количество ходов: ---',
-                'stats_rules': '• Количество правил: 0',
-                'stats_pins': '• Количество пинов: ---',
+                'stats_moves': '• Наименьшее количество ходов:',
+                'stats_rules': '• Количество правил:',
+                'stats_pins': '• Количество пинов:',
                 'stats_default': '---',
                 
                 // WIZUALIZACJA
@@ -1291,8 +1268,7 @@
                 'direction_right': '→',
                 'direction_left': '←',
                 
-                
-               // SYMULACJA
+                // SYMULACJA
                 'sim_first': '⏮ Первый',
                 'sim_prev': '◀ Предыдущий',
                 'sim_play': '▶ Воспроизвести',
@@ -1303,7 +1279,6 @@
                 'sim_step': 'Шаг:',
                 'sim_step_label': 'Шаг',
                 'sim_initial': 'Начальное состояние',
-                'added_lock': 'Новый замок добавлен',
                 
                 // STOPKA
                 'footer': 'Gothic Lock Studio',
@@ -1319,7 +1294,6 @@
             const t = translations[lang];
             if (!t) return;
             
-            // Tłumaczenie tekstów
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (t[key] !== undefined) {
@@ -1327,7 +1301,6 @@
                 }
             });
             
-            // Tłumaczenie placeholderów
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
                 if (t[key] !== undefined) {
@@ -1336,6 +1309,12 @@
             });
             
             localStorage.setItem('gothic-lock-language', lang);
+            
+            // Odśwież dynamiczne elementy
+            updateStats();
+            renderSolution();
+            updateStepInfo();
+            updateSimulationControls(true);
         }
 
         const savedLang = localStorage.getItem('gothic-lock-language');
@@ -1345,94 +1324,7 @@
             setLanguage('pl');
         }
 
-               // ============================================================
-        // ODTWARZANIE - POPRAWIONE
         // ============================================================
-        function togglePlay() {
-            console.log('🔄 togglePlay wywołany, isPlaying:', isPlaying);
-            if (isPlaying) {
-                stopPlayback();
-            } else {
-                startPlayback();
-            }
-        }
-
-        function startPlayback() {
-            console.log('🎬 startPlayback wywołany');
-            
-            if (!solutionSteps || solutionSteps.length === 0) {
-                console.log('  ❌ Brak kroków!');
-                return;
-            }
-            if (currentStepIndex >= solutionSteps.length - 1) {
-                console.log('  🔄 Resetuję do początku');
-                goToStep(-1);
-            }
-            
-            isPlaying = true;
-            const playBtn = document.getElementById('btnPlay');
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            if (playBtn) {
-                playBtn.textContent = t.sim_pause || '⏸ Pauza';
-                playBtn.className = 'btn-play playing';
-            }
-            
-            const speedSlider = document.getElementById('speedSlider');
-            const speedValue = parseInt(speedSlider.value);
-            speed = Math.max(200, 1200 - speedValue * 100);
-            console.log('  ✅ Odtwarzanie rozpoczęte! Prędkość:', speed);
-            
-            // Wykonaj pierwszy krok po krótkim opóźnieniu
-            setTimeout(() => { 
-                if (isPlaying) {
-                    console.log('  🚀 Pierwszy krok...');
-                    playNextStep();
-                }
-            }, 300);
-        }
-
-        function playNextStep() {
-            console.log('▶️ playNextStep wywołany');
-            console.log('  isPlaying:', isPlaying);
-            console.log('  currentStepIndex:', currentStepIndex);
-            console.log('  solutionSteps.length:', solutionSteps ? solutionSteps.length : 0);
-            
-            if (!isPlaying) {
-                console.log('  ❌ Odtwarzanie zatrzymane!');
-                return;
-            }
-            if (!solutionSteps || solutionSteps.length === 0) {
-                console.log('  ❌ Brak kroków!');
-                stopPlayback();
-                return;
-            }
-            if (currentStepIndex >= solutionSteps.length - 1) {
-                console.log('  ⏹ Ostatni krok! Zatrzymuję.');
-                stopPlayback();
-                return;
-            }
-            console.log('  ➡️ Wykonuję krok:', currentStepIndex + 1);
-            goToStep(currentStepIndex + 1);
-            console.log('  ⏳ Planuję następny krok za', speed, 'ms');
-            playInterval = setTimeout(playNextStep, speed);
-        }
-
-        function stopPlayback() {
-            console.log('⏹ stopPlayback wywołany');
-            isPlaying = false;
-            if (playInterval) {
-                clearTimeout(playInterval);
-                playInterval = null;
-            }
-            const playBtn = document.getElementById('btnPlay');
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            if (playBtn) {
-                playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
-                playBtn.className = 'btn-play';
-            }
-        }
         // INICJACJA
         // ============================================================
         currentLockIndex = -1;
