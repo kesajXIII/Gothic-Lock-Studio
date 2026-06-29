@@ -472,7 +472,26 @@
                 container.appendChild(row);
             });
         }
-
+        
+        // ============================================================
+        // TŁUMACZENIE KROKÓW ROZWIĄZANIA
+        // ============================================================
+        function translateStep(step, lang) {
+            const t = translations[lang];
+            if (!t) return step;
+            
+            // Tłumaczenie "Zapadka X →" i "Zapadka X ←"
+            const pinMatch = step.match(/Zapadka (\d+) (→|←)/);
+            if (pinMatch) {
+                const pinNumber = pinMatch[1];
+                const direction = pinMatch[2];
+                const pinWord = t.pin_word || 'Zapadka';
+                const directionWord = direction === '→' ? (t.direction_right || '→') : (t.direction_left || '←');
+                return `${pinWord} ${pinNumber} ${directionWord}`;
+            }
+            
+            return step;
+        }
      function renderSolution() {
             const container = document.getElementById('solutionList');
             const lock = locks[currentLockIndex];
@@ -1011,6 +1030,10 @@
                 'solution_click': 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie',
                 'solution_found': '✅ Rozwiązanie znalezione!',
                 'solution_not_found': '❌ Nie znaleziono rozwiązania!',
+                'solution_moves': 'ruchów',
+                'pin_word': 'Zapadka',
+                'direction_right': '→',
+                'direction_left': '←',
                 
                 // SYMULACJA
                 'sim_first': '⏮ Pierwszy',
@@ -1077,6 +1100,9 @@
                 'solution_found': '✅ Solution found!',
                 'solution_not_found': '❌ No solution found!',
                 'solution_moves': 'moves',
+                'pin_word': 'Pin',
+                'direction_right': '→',
+                'direction_left': '←',
                 
                 // SYMULACJA
                 'sim_first': '⏮ First',
@@ -1143,6 +1169,9 @@
                 'solution_found': '✅ Lösung gefunden!',
                 'solution_not_found': '❌ Keine Lösung gefunden!',
                 'solution_moves': 'Züge',
+                'pin_word': 'Stift',
+                'direction_right': '→',
+                'direction_left': '←',
                 
                 // SYMULACJA
                 'sim_first': '⏮ Erste',
@@ -1209,6 +1238,9 @@
                 'solution_found': '✅ Решение найдено!',
                 'solution_not_found': '❌ Решение не найдено!',
                 'solution_moves': 'ходов',
+                'pin_word': 'Пин',
+                'direction_right': '→',
+                'direction_left': '←',
                 
                 
                 // SYMULACJA
