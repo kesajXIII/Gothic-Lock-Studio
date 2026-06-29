@@ -633,15 +633,30 @@
             document.getElementById('statusMessage').textContent = `Załadowno: ${lock.name}`;
         }
 
-        function enableControls(enabled) {
-            const elements = ['lockName', 'lockDesc', 'pinCount', 'btn-add-rule', 'btn-solve'];
-            elements.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.disabled = !enabled;
-            });
-            const addRuleBtn = document.querySelector('.btn-add-rule');
-            if (addRuleBtn) addRuleBtn.disabled = !enabled;
-        }
+     function enableControls(enabled) {
+    console.log('enableControls wywołany z:', enabled);
+    
+    // Bezpośrednie odwołania do przycisków
+    const btnSolve = document.querySelector('.btn-solve');
+    const btnRule = document.querySelector('.btn-add-rule');
+    
+    if (btnSolve) {
+        btnSolve.disabled = !enabled;
+        console.log('  btn-solve.disabled =', btnSolve.disabled);
+    }
+    if (btnRule) {
+        btnRule.disabled = !enabled;
+    }
+    
+    // Pola formularza
+    const lockName = document.getElementById('lockName');
+    const lockDesc = document.getElementById('lockDesc');
+    const pinCount = document.getElementById('pinCount');
+    
+    if (lockName) lockName.disabled = !enabled;
+    if (lockDesc) lockDesc.disabled = !enabled;
+    if (pinCount) pinCount.disabled = !enabled;
+}
 
         function addNewLock() {
             const newLock = new LockData(
