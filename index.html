@@ -1351,7 +1351,7 @@
      // ============================================================
         // LICZNIK ODWIEDZIN (lokalny)
         // ============================================================
-        (function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const counter = document.getElementById('visitorCount');
             if (!counter) return;
             
@@ -1366,7 +1366,7 @@
             } catch(e) {
                 counter.textContent = 'Odwiedziny: 1';
             }
-        })();
+        });
         // ============================================================
         // INICJACJA
         // ============================================================
