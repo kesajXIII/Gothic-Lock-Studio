@@ -143,7 +143,7 @@
                     <button class="btn-add-rule" onclick="addRule()" disabled data-i18n="add_rule">+ Dodaj regułę</button>
                 </div>
 
-                <!-- LEGENDA -->
+                <!-- LEGENDA Z NOWĄ SEKCJĄ O BLOKADZIE -->
                 <div class="legend-box" style="background: #1a1a1a; border: 1px solid #4a3a2a; border-radius: 6px; padding: 12px; margin-top: 10px;">
                     <div style="color: #b8a87a; font-weight: bold; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #4a3a2a; padding-bottom: 8px;">
                         📖 <span data-i18n="legend_title">Co oznaczają symbole?</span>
@@ -168,6 +168,14 @@
                             <span style="color: #c8c8c8;">
                                 <strong style="color: #b8a87a;" data-i18n="legend_no_rule">BRAK REGUŁY</strong>
                                 <span data-i18n="legend_no_rule_desc"> – zapadka porusza się TYLKO sama (nie wpływa na inne)</span>
+                            </span>
+                        </div>
+                        <!-- NOWA SEKCJA: BLOKADA ZAPADEK -->
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px; background: #1a1a1a; border-radius: 4px; border-left: 3px solid #ff8844; margin-top: 4px;">
+                            <span style="font-weight: bold; font-size: 18px; color: #ff8844; min-width: 30px; text-align: center;">🔒</span>
+                            <span style="color: #c8c8c8;">
+                                <strong style="color: #ff8844;" data-i18n="legend_lock_info">BLOKADA ZAPADEK</strong>
+                                <span data-i18n="legend_lock_info_desc"> – po znalezieniu rozwiązania zapadki są blokowane, aby nie zniszczyć sekwencji. Zmień reguły lub nazwę zamka aby odblokować.</span>
                             </span>
                         </div>
                     </div>
@@ -368,7 +376,7 @@
         let isPlaying = false;
         let playInterval = null;
         let speed = 800;
-        let isLockSolved = false; // 🔒 BLOKADA ZAPADEK PO ROZWIĄZANIU
+        let isLockSolved = false;
 
         const solver = new LockSolver();
 
@@ -554,7 +562,9 @@
                 container.className = 'lock-visualization';
                 if (hint) {
                     hint.className = 'pin-hint';
-                    hint.textContent = '💡 Kliknij na otwór aby ustawić bołec';
+                    const lang = currentLanguage || 'pl';
+                    const t = translations[lang];
+                    hint.textContent = t.visualization_hint || '💡 Kliknij na otwór aby ustawić bołec';
                 }
                 return;
             }
@@ -564,18 +574,17 @@
             const t = translations[lang];
             const positionLabel = t.position_label || 'Pozycja:';
             
-            // Ustaw klasy wizualizacji
             if (isLockSolved) {
                 container.className = 'lock-visualization locked';
                 if (hint) {
                     hint.className = 'pin-hint locked';
-                    hint.textContent = '🔒 Zamek rozwiązany – zapadki zablokowane';
+                    hint.textContent = t.visualization_locked || '🔒 Zamek rozwiązany – zapadki zablokowane';
                 }
             } else {
                 container.className = 'lock-visualization';
                 if (hint) {
                     hint.className = 'pin-hint';
-                    hint.textContent = '💡 Kliknij na otwór aby ustawić bołec';
+                    hint.textContent = t.visualization_hint || '💡 Kliknij na otwór aby ustawić bołec';
                 }
             }
             
@@ -888,13 +897,12 @@
         // INTERAKCJE
         // ============================================================
         function onPinClick(index) {
-            if (isLockSolved) return; // 🔒 BLOKADA
+            if (isLockSolved) return;
             selectedPin = selectedPin === index ? -1 : index;
             renderLockVisualization();
         }
 
         function onHoleClick(pinIndex, holeIndex) {
-            // 🔒 BLOKADA: jeśli zamek jest rozwiązany, nie można zmieniać zapadek
             if (isLockSolved) {
                 const lang = currentLanguage || 'pl';
                 const t = translations[lang];
@@ -916,7 +924,7 @@
                 currentStepIndex = -1;
                 highlightedPin = -1;
                 selectedPin = -1;
-                isLockSolved = false; // reset blokady
+                isLockSolved = false;
                 stopPlayback();
                 renderLockVisualization();
                 renderSolution();
@@ -1059,7 +1067,7 @@
             const lock = locks[currentLockIndex];
             if (!lock) return;
             lock.rules.push(new Rule(1, 2, 1));
-            isLockSolved = false; // odblokuj po zmianie reguł
+            isLockSolved = false;
             renderRules();
             lock.solution = [];
             solutionSteps = [];
@@ -1078,7 +1086,7 @@
             const lock = locks[currentLockIndex];
             if (!lock) return;
             lock.rules.splice(index, 1);
-            isLockSolved = false; // odblokuj po zmianie reguł
+            isLockSolved = false;
             renderRules();
             lock.solution = [];
             solutionSteps = [];
@@ -1099,7 +1107,7 @@
             if (field === 0) lock.rules[index].fromPin = value;
             else if (field === 1) lock.rules[index].toPin = value;
             else if (field === 2) lock.rules[index].direction = value;
-            isLockSolved = false; // odblokuj po zmianie reguł
+            isLockSolved = false;
             lock.solution = [];
             solutionSteps = [];
             currentStepIndex = -1;
@@ -1119,7 +1127,6 @@
             const lock = locks[currentLockIndex];
             if (!lock) return;
             
-            // Walidacja: sprawdź czy initialPins są ustawione
             if (!lock.initialPins || lock.initialPins.length !== lock.pinCount) {
                 lock.initialPins = [];
                 for (let i = 0; i < lock.pinCount; i++) {
@@ -1143,7 +1150,7 @@
                 highlightedPin = -1;
                 stopPlayback();
                 currentPins = [...lock.initialPins];
-                isLockSolved = true; // 🔒 BLOKUJEMY ZAPADKI
+                isLockSolved = true;
                 
                 const status = document.getElementById('statusMessage');
                 status.textContent = `${t.solution_found || '✅ Rozwiązanie znalezione!'} ${solution.length} ${t.solution_moves || 'ruchów'}`;
@@ -1286,6 +1293,9 @@
                 'lock_deleted': 'Usunięto zamek',
                 'added_lock': 'Dodano nowy zamek',
                 'lock_solved_blocked': '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek. Zmień coś w zamku aby odblokować.',
+                'visualization_locked': '🔒 Zamek rozwiązany – zapadki zablokowane',
+                'legend_lock_info': 'BLOKADA ZAPADEK',
+                'legend_lock_info_desc': ' – po znalezieniu rozwiązania zapadki są blokowane, aby nie zniszczyć sekwencji. Zmień reguły lub nazwę zamka aby odblokować.',
                 
                 'editor_title': 'EDYTOR ZAMKA',
                 'name': 'Nazwa:',
@@ -1362,6 +1372,9 @@
                 'lock_deleted': 'Lock deleted',
                 'added_lock': 'New lock added',
                 'lock_solved_blocked': '🔒 Lock solved – you cannot change pins. Change something in the lock to unlock.',
+                'visualization_locked': '🔒 Lock solved – pins locked',
+                'legend_lock_info': 'PIN LOCK',
+                'legend_lock_info_desc': ' – after finding a solution, pins are locked to prevent breaking the sequence. Change rules or lock name to unlock.',
                 
                 'editor_title': 'LOCK EDITOR',
                 'name': 'Name:',
@@ -1438,6 +1451,9 @@
                 'lock_deleted': 'Schloss gelöscht',
                 'added_lock': 'Neues Schloss hinzugefügt',
                 'lock_solved_blocked': '🔒 Schloss gelöst – du kannst die Stifte nicht ändern. Ändere etwas am Schloss, um es zu entsperren.',
+                'visualization_locked': '🔒 Schloss gelöst – Stifte gesperrt',
+                'legend_lock_info': 'STIFT-SPERRE',
+                'legend_lock_info_desc': ' – nach dem Finden einer Lösung werden die Stifte gesperrt, um die Sequenz nicht zu zerstören. Ändere Regeln oder den Namen des Schlosses, um zu entsperren.',
                 
                 'editor_title': 'SCHLOSS-EDITOR',
                 'name': 'Name:',
@@ -1514,6 +1530,9 @@
                 'lock_deleted': 'Замок удален',
                 'added_lock': 'Новый замок добавлен',
                 'lock_solved_blocked': '🔒 Замок решен – вы не можете менять пины. Измените что-то в замке, чтобы разблокировать.',
+                'visualization_locked': '🔒 Замок решен – пины заблокированы',
+                'legend_lock_info': 'БЛОКИРОВКА ПИНОВ',
+                'legend_lock_info_desc': ' – после нахождения решения пины блокируются, чтобы не нарушить последовательность. Измените правила или название замка, чтобы разблокировать.',
                 
                 'editor_title': 'РЕДАКТОР ЗАМКА',
                 'name': 'Название:',
@@ -1598,11 +1617,11 @@
             
             localStorage.setItem('gothic-lock-language', lang);
             
-            // Odśwież dynamiczne elementy
             updateStats();
             renderSolution();
             updateStepInfo();
             updateSimulationControls(true);
+            renderLockVisualization();
         }
 
         const savedLang = localStorage.getItem('gothic-lock-language');
@@ -1643,7 +1662,6 @@
         // INICJACJA
         // ============================================================
 
-        // Spróbuj wczytać zapisane zamki
         const hasSavedLocks = loadLocksFromStorage();
 
         if (hasSavedLocks && locks.length > 0) {
