@@ -31,6 +31,10 @@
         .btn-add:hover { background: #3a5a7a; }
         .btn-delete { background: #6a2a2a; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-top: 5px; width: 100%; font-size: 14px; }
         .btn-delete:hover { background: #8a2a2a; }
+        .btn-export { background: #2a4a6a; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-top: 5px; width: 100%; font-size: 14px; }
+        .btn-export:hover { background: #3a5a7a; }
+        .btn-import { background: #4a6a2a; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-top: 5px; width: 100%; font-size: 14px; }
+        .btn-import:hover { background: #5a8a3a; }
         .editor-field { margin-bottom: 10px; }
         .editor-field label { display: inline-block; width: 80px; color: #aaa; font-size: 13px; }
         .editor-field input, .editor-field select { background: #1a1a1a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 10px; width: calc(100% - 90px); }
@@ -100,6 +104,8 @@
                 </ul>
                 <button class="btn-add" onclick="addNewLock()" data-i18n="add_new">➕ Nowy</button>
                 <button class="btn-delete" onclick="deleteCurrentLock()" data-i18n="delete">🗑 Usuń wybrany</button>
+                <button class="btn-export" onclick="exportLocks()" data-i18n="export">💾 Eksportuj zamki</button>
+                <button class="btn-import" onclick="importLocks()" data-i18n="import">📂 Importuj zamki</button>
             </div>
         </div>
 
@@ -220,9 +226,8 @@
                 <button onclick="setLanguage('ru')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇷🇺 Русский</button>
             </div>
 
-                               <!-- STOPKA -->
+            <!-- STOPKA -->
             <div class="footer">
-                <!-- NOWY LINK DO POBRANIA -->
                 <div style="margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 8px; border: 1px solid #4CAF50;">
                     <a href="https://github.com/kesajxiii/Gothic-Lock-Studio/releases/download/v1.0.0/GothicLockStudio_Setup.exe" 
                        style="color: #4CAF50; font-weight: bold; text-decoration: none; font-size: 1.1em;">
@@ -232,16 +237,15 @@
                     <span style="color: #888; font-size: 0.8em;">Wersja 1.0.0 | Windows 10/11</span>
                 </div>
                 
-                <!-- STARA TREŚĆ STOPKI -->
-            <div class="footer">
-                🛡️ <strong data-i18n="footer">Gothic Lock Studio</strong> — <span data-i18n="footer_author">stworzone przez kesajXIII (kesaj13@tlen.pl)</span> | <span data-i18n="footer_rights">Wszelkie prawa zastrzeżone</span> &copy; 2026
+                <div>
+                    🛡️ <strong data-i18n="footer">Gothic Lock Studio</strong> — <span data-i18n="footer_author">stworzone przez kesajXIII (kesaj13@tlen.pl)</span> | <span data-i18n="footer_rights">Wszelkie prawa zastrzeżone</span> &copy; 2026
+                </div>
+                
+                <a href="https://github.com/kesajXIII/Gothic-Lock-Studio/releases" target="_blank">
+                    <img src="https://img.shields.io/github/downloads/kesajXIII/Gothic-Lock-Studio/total?style=for-the-badge&label=Pobrania&color=blue" 
+                         alt="Liczba pobrań" />
+                </a>
             </div>
-                    <!-- NOWA ODZNAKA Z LICZBĄ POBRAŃ -->
-    <a href="https://github.com/kesajXIII/Gothic-Lock-Studio/releases" target="_blank">
-        <img src="https://img.shields.io/github/downloads/kesajXIII/Gothic-Lock-Studio/total?style=for-the-badge&label=Pobrania&color=blue" 
-             alt="Liczba pobrań" />
-    </a>
-</div>
 
             <!-- LICZNIK ODWIEDZIN -->
             <div style="text-align: center; padding: 8px 0; color: #6a6a6a; font-size: 13px; border-top: 1px solid #4a3a2a; margin-top: 5px;">
@@ -363,6 +367,158 @@
         const solver = new LockSolver();
 
         // ============================================================
+        // ZAPIS / ODCZYT ZAMKÓW (localStorage)
+        // ============================================================
+
+        const STORAGE_KEY = 'gothicLockStudio_locks';
+
+        function saveLocksToStorage() {
+            try {
+                const data = locks.map(lock => ({
+                    name: lock.name,
+                    description: lock.description,
+                    pinCount: lock.pinCount,
+                    initialPins: lock.initialPins,
+                    rules: lock.rules.map(r => ({
+                        fromPin: r.fromPin,
+                        toPin: r.toPin,
+                        direction: r.direction
+                    })),
+                    solution: lock.solution || []
+                }));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                console.log('✅ Zamki zapisane w localStorage');
+            } catch (e) {
+                console.warn('⚠️ Błąd zapisu zamków:', e);
+            }
+        }
+
+        function loadLocksFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) return false;
+                
+                const data = JSON.parse(saved);
+                if (!data || !data.length) return false;
+                
+                locks = data.map(lockData => {
+                    const lock = new LockData(
+                        lockData.name,
+                        lockData.description || '',
+                        lockData.pinCount || 3,
+                        lockData.initialPins || [],
+                        []
+                    );
+                    if (lockData.rules) {
+                        lock.rules = lockData.rules.map(r => 
+                            new Rule(r.fromPin, r.toPin, r.direction)
+                        );
+                    }
+                    if (lockData.solution) {
+                        lock.solution = lockData.solution;
+                    }
+                    return lock;
+                });
+                
+                console.log(`✅ Wczytano ${locks.length} zamków z localStorage`);
+                return true;
+            } catch (e) {
+                console.warn('⚠️ Błąd odczytu zamków:', e);
+                return false;
+            }
+        }
+
+        function autoSave() {
+            saveLocksToStorage();
+        }
+
+        // ============================================================
+        // EKSPORT / IMPORT ZAMKÓW (JSON)
+        // ============================================================
+
+        function exportLocks() {
+            if (locks.length === 0) {
+                const lang = currentLanguage || 'pl';
+                const t = translations[lang];
+                document.getElementById('statusMessage').textContent = t.no_locks_to_export || '❌ Brak zamków do eksportu';
+                return;
+            }
+            const data = JSON.stringify(locks, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `zamki_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            const lang = currentLanguage || 'pl';
+            const t = translations[lang];
+            document.getElementById('statusMessage').textContent = t.export_success || '✅ Eksport zakończony';
+        }
+
+        function importLocks() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (!Array.isArray(data) || data.length === 0) {
+                            throw new Error('Nieprawidłowy format');
+                        }
+                        locks = data.map(lockData => {
+                            const lock = new LockData(
+                                lockData.name,
+                                lockData.description || '',
+                                lockData.pinCount || 3,
+                                lockData.initialPins || [],
+                                []
+                            );
+                            if (lockData.rules) {
+                                lock.rules = lockData.rules.map(r => 
+                                    new Rule(r.fromPin, r.toPin, r.direction)
+                                );
+                            }
+                            if (lockData.solution) {
+                                lock.solution = lockData.solution;
+                            }
+                            return lock;
+                        });
+                        autoSave();
+                        if (locks.length > 0) {
+                            loadLock(0);
+                        } else {
+                            currentLockIndex = -1;
+                            enableControls(false);
+                            renderLockList();
+                            renderLockVisualization();
+                            renderRules();
+                            renderSolution();
+                            updateStats();
+                            updateSimulationControls(false);
+                            updateStepInfo();
+                        }
+                        const lang = currentLanguage || 'pl';
+                        const t = translations[lang];
+                        document.getElementById('statusMessage').textContent = 
+                            (t.import_success || '✅ Zaimportowano') + ` ${locks.length} ` + (t.locks || 'zamków');
+                    } catch (err) {
+                        const lang = currentLanguage || 'pl';
+                        const t = translations[lang];
+                        document.getElementById('statusMessage').textContent = t.import_error || '❌ Błąd importu: nieprawidłowy plik';
+                        console.error(err);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // ============================================================
         // RENDEROWANIE
         // ============================================================
         function renderLockList() {
@@ -426,7 +582,6 @@
 
                 const position = document.createElement('div');
                 position.className = 'pin-position';
-                // 🔥 TŁUMACZENIE "Pozycja: X/7"
                 position.textContent = `${positionLabel} ${value}/7`;
                 pinDiv.appendChild(position);
 
@@ -434,7 +589,8 @@
             }
             updateStats();
         }
-                function renderRules() {
+
+        function renderRules() {
             const container = document.getElementById('rulesList');
             const lock = locks[currentLockIndex];
             if (!lock) {
@@ -629,7 +785,6 @@
             } else {
                 document.getElementById('statusMessage').textContent = t.sim_initial || 'Stan początkowy';
             }
-            // NIE MA stopPlayback() - TO JEST WAŻNE!
         }
 
         function goToFirstStep() { goToStep(0); }
@@ -719,6 +874,7 @@
                 updateStats();
                 updateSimulationControls(false);
                 updateStepInfo();
+                autoSave();
             }
         }
 
@@ -766,13 +922,11 @@
         }
 
         function enableControls(enabled) {
-            console.log('enableControls wywołany z:', enabled);
             const btnSolve = document.querySelector('.btn-solve');
             const btnRule = document.querySelector('.btn-add-rule');
             
             if (btnSolve) {
                 btnSolve.disabled = !enabled;
-                console.log('  btn-solve.disabled =', btnSolve.disabled);
             }
             if (btnRule) {
                 btnRule.disabled = !enabled;
@@ -799,6 +953,7 @@
             const lang = currentLanguage || 'pl';
             const t = translations[lang];
             document.getElementById('statusMessage').textContent = t.added_lock || 'Dodano nowy zamek';
+            autoSave();
         }
 
         function deleteCurrentLock() {
@@ -828,6 +983,7 @@
                 updateStats();
                 updateSimulationControls(false);
                 updateStepInfo();
+                autoSave();
                 return;
             }
             if (currentLockIndex >= locks.length) {
@@ -835,6 +991,7 @@
             }
             loadLock(currentLockIndex);
             document.getElementById('statusMessage').textContent = t.lock_deleted || 'Usunięto zamek';
+            autoSave();
         }
 
         // ============================================================
@@ -854,6 +1011,7 @@
             updateSimulationControls(false);
             updateStepInfo();
             document.getElementById('statusMessage').textContent = 'Dodano regułę';
+            autoSave();
         }
 
         function removeRule(index) {
@@ -870,6 +1028,7 @@
             updateSimulationControls(false);
             updateStepInfo();
             document.getElementById('statusMessage').textContent = 'Usunięto regułę';
+            autoSave();
         }
 
         function updateRule(index, field, value) {
@@ -886,6 +1045,7 @@
             updateStats();
             updateSimulationControls(false);
             updateStepInfo();
+            autoSave();
         }
 
         // ============================================================
@@ -894,10 +1054,20 @@
         function solveLock() {
             const lock = locks[currentLockIndex];
             if (!lock) return;
-            if (lock.initialPins.length !== lock.pinCount) {
-                document.getElementById('statusMessage').textContent = '❌ Ustaw wszystkie zapadki!';
+            
+            // Walidacja: sprawdź czy initialPins są ustawione
+            if (!lock.initialPins || lock.initialPins.length !== lock.pinCount) {
+                // Inicjalizacja domyślnymi wartościami
+                lock.initialPins = [];
+                for (let i = 0; i < lock.pinCount; i++) {
+                    lock.initialPins[i] = 4;
+                }
+                currentPins = [...lock.initialPins];
+                renderLockVisualization();
+                document.getElementById('statusMessage').textContent = 'Ustawiono domyślne pozycje zapadek (4/7)';
                 return;
             }
+            
             lock.initialPins = [...currentPins];
             const solution = solver.solve(lock);
 
@@ -927,6 +1097,7 @@
             updateStats();
             updateSimulationControls(true);
             updateStepInfo();
+            autoSave();
         }
 
         // ============================================================
@@ -977,6 +1148,7 @@
             if (lock) {
                 lock.name = this.value || 'Bez nazwy';
                 renderLockList();
+                autoSave();
             }
         });
 
@@ -984,6 +1156,7 @@
             const lock = locks[currentLockIndex];
             if (lock) {
                 lock.description = this.value || '';
+                autoSave();
             }
         });
 
@@ -1014,6 +1187,7 @@
             updateSimulationControls(false);
             updateStepInfo();
             document.getElementById('statusMessage').textContent = `Zmieniono ilość zapadek na ${newCount}`;
+            autoSave();
         });
 
         document.getElementById('speedSlider').addEventListener('input', function() {
@@ -1021,22 +1195,28 @@
             document.getElementById('speedLabel').textContent = (val / 5).toFixed(1) + 'x';
             speed = Math.max(200, 1200 - val * 100);
         });
-                // ============================================================
+
+        // ============================================================
         // TŁUMACZENIA – PEŁNE 4 JĘZYKI
         // ============================================================
         const translations = {
             'pl': {
-                // MENU
                 'my_locks': 'MOJE ZAMKI',
                 'no_locks': 'Brak zamków – kliknij "➕ Nowy"',
                 'add_new': '➕ Nowy',
                 'delete': '🗑 Usuń wybrany',
+                'export': '💾 Eksportuj zamki',
+                'import': '📂 Importuj zamki',
                 'no_lock_to_delete': 'Nie ma zamka do usunięcia',
                 'no_locks_to_delete': 'Brak zamków do usunięcia',
+                'no_locks_to_export': '❌ Brak zamków do eksportu',
+                'export_success': '✅ Eksport zakończony',
+                'import_success': '✅ Zaimportowano',
+                'import_error': '❌ Błąd importu: nieprawidłowy plik',
+                'locks': 'zamków',
                 'lock_deleted': 'Usunięto zamek',
                 'added_lock': 'Dodano nowy zamek',
                 
-                // EDYTOR
                 'editor_title': 'EDYTOR ZAMKA',
                 'name': 'Nazwa:',
                 'name_placeholder': 'Wpisz nazwę zamka',
@@ -1049,7 +1229,6 @@
                 'solve': '🔓 Rozwiąż zamek',
                 'status': 'Stan: Dodaj nowy zamek aby rozpocząć',
                 
-                // LEGENDA
                 'legend_title': 'Co oznaczają symbole?',
                 'legend_same': 'ten sam kierunek',
                 'legend_same_desc': ' – zapadka przesuwa się w tę samą stronę',
@@ -1060,20 +1239,17 @@
                 'legend_important': 'Ważne:',
                 'legend_important_desc': 'Jeśli nie chcesz, aby zapadka wpływała na inne – nie dodawaj dla niej reguły.',
                 
-                // STATYSTYKI
                 'stats_title': 'Statystyki',
                 'stats_moves': '• Najkrótsza liczba ruchów:',
                 'stats_rules': '• Liczba reguł:',
                 'stats_pins': '• Liczba zapadek:',
                 'stats_default': '---',
                 
-                // WIZUALIZACJA
                 'visualization_title': '1. Stan zamka',
                 'visualization_empty': 'Dodaj zamek aby rozpocząć',
                 'visualization_hint': '💡 Kliknij na otwór aby ustawić bołec',
                 'position_label': 'Pozycja:',
                 
-                // ROZWIĄZANIE
                 'solution_title': 'Rozwiązanie',
                 'solution_empty': 'Dodaj zamek i kliknij "Rozwiąż zamek"',
                 'solution_click': 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie',
@@ -1084,7 +1260,6 @@
                 'direction_right': '→',
                 'direction_left': '←',
                 
-                // SYMULACJA
                 'sim_first': '⏮ Pierwszy',
                 'sim_prev': '◀ Poprzedni',
                 'sim_play': '▶ Odtwarzaj',
@@ -1096,23 +1271,27 @@
                 'sim_step_label': 'Krok',
                 'sim_initial': 'Stan początkowy',
                 
-                // STOPKA
                 'footer': 'Gothic Lock Studio',
                 'footer_author': 'stworzone przez kesajXIII (kesaj13@tlen.pl)',
                 'footer_rights': 'Wszelkie prawa zastrzeżone'
             },
             'en': {
-                // MENU
                 'my_locks': 'MY LOCKS',
                 'no_locks': 'No locks – click "➕ New"',
                 'add_new': '➕ New',
                 'delete': '🗑 Delete selected',
+                'export': '💾 Export locks',
+                'import': '📂 Import locks',
                 'no_lock_to_delete': 'No lock to delete',
                 'no_locks_to_delete': 'No locks to delete',
+                'no_locks_to_export': '❌ No locks to export',
+                'export_success': '✅ Export completed',
+                'import_success': '✅ Imported',
+                'import_error': '❌ Import error: invalid file',
+                'locks': 'locks',
                 'lock_deleted': 'Lock deleted',
                 'added_lock': 'New lock added',
                 
-                // EDYTOR
                 'editor_title': 'LOCK EDITOR',
                 'name': 'Name:',
                 'name_placeholder': 'Enter lock name',
@@ -1125,7 +1304,6 @@
                 'solve': '🔓 Solve lock',
                 'status': 'Status: Add a new lock to start',
                 
-                // LEGENDA
                 'legend_title': 'What do the symbols mean?',
                 'legend_same': 'same direction',
                 'legend_same_desc': ' – the pin moves in the same direction',
@@ -1136,20 +1314,17 @@
                 'legend_important': 'Important:',
                 'legend_important_desc': "If you don't want the pin to affect others – do not add a rule for it.",
                 
-                // STATYSTYKI
                 'stats_title': 'Statistics',
                 'stats_moves': '• Shortest number of moves:',
                 'stats_rules': '• Number of rules:',
                 'stats_pins': '• Number of pins:',
                 'stats_default': '---',
                 
-                // WIZUALIZACJA
                 'visualization_title': '1. Lock state',
                 'visualization_empty': 'Add a lock to start',
                 'visualization_hint': '💡 Click on a hole to set the bolt',
                 'position_label': 'Position:',
                 
-                // ROZWIĄZANIE
                 'solution_title': 'Solution',
                 'solution_empty': 'Add a lock and click "Solve lock"',
                 'solution_click': 'Click "Solve lock" to find a solution',
@@ -1160,7 +1335,6 @@
                 'direction_right': '→',
                 'direction_left': '←',
                 
-                // SYMULACJA
                 'sim_first': '⏮ First',
                 'sim_prev': '◀ Previous',
                 'sim_play': '▶ Play',
@@ -1172,23 +1346,27 @@
                 'sim_step_label': 'Step',
                 'sim_initial': 'Initial state',
                 
-                // STOPKA
                 'footer': 'Gothic Lock Studio',
                 'footer_author': 'created by kesajXIII (kesaj13@tlen.pl)',
                 'footer_rights': 'All rights reserved'
             },
             'de': {
-                // MENU
                 'my_locks': 'MEINE SCHLÖSSER',
                 'no_locks': 'Keine Schlösser – klicke "➕ Neu"',
                 'add_new': '➕ Neu',
                 'delete': '🗑 Ausgewählte löschen',
+                'export': '💾 Schlösser exportieren',
+                'import': '📂 Schlösser importieren',
                 'no_lock_to_delete': 'Kein Schloss zum Löschen',
                 'no_locks_to_delete': 'Keine Schlösser zum Löschen',
+                'no_locks_to_export': '❌ Keine Schlösser zum Exportieren',
+                'export_success': '✅ Export abgeschlossen',
+                'import_success': '✅ Importiert',
+                'import_error': '❌ Importfehler: ungültige Datei',
+                'locks': 'Schlösser',
                 'lock_deleted': 'Schloss gelöscht',
                 'added_lock': 'Neues Schloss hinzugefügt',
                 
-                // EDYTOR
                 'editor_title': 'SCHLOSS-EDITOR',
                 'name': 'Name:',
                 'name_placeholder': 'Name des Schlosses eingeben',
@@ -1201,7 +1379,6 @@
                 'solve': '🔓 Schloss lösen',
                 'status': 'Status: Füge ein neues Schloss hinzu, um zu beginnen',
                 
-                // LEGENDA
                 'legend_title': 'Was bedeuten die Symbole?',
                 'legend_same': 'gleiche Richtung',
                 'legend_same_desc': ' – der Stift bewegt sich in die gleiche Richtung',
@@ -1212,20 +1389,17 @@
                 'legend_important': 'Wichtig:',
                 'legend_important_desc': 'Wenn du nicht möchtest, dass der Stift andere beeinflusst – füge keine Regel für ihn hinzu.',
                 
-                // STATYSTYKI
                 'stats_title': 'Statistiken',
                 'stats_moves': '• Kürzeste Anzahl von Zügen:',
                 'stats_rules': '• Anzahl der Regeln:',
                 'stats_pins': '• Anzahl der Stifte:',
                 'stats_default': '---',
                 
-                // WIZUALIZACJA
                 'visualization_title': '1. Zustand des Schlosses',
                 'visualization_empty': 'Füge ein Schloss hinzu, um zu beginnen',
                 'visualization_hint': '💡 Klicke auf ein Loch, um den Bolzen zu setzen',
                 'position_label': 'Position:',
                 
-                // ROZWIĄZANIE
                 'solution_title': 'Lösung',
                 'solution_empty': 'Füge ein Schloss hinzu und klicke "Schloss lösen"',
                 'solution_click': 'Klicke "Schloss lösen", um eine Lösung zu finden',
@@ -1236,7 +1410,6 @@
                 'direction_right': '→',
                 'direction_left': '←',
                 
-                // SYMULACJA
                 'sim_first': '⏮ Erste',
                 'sim_prev': '◀ Vorherige',
                 'sim_play': '▶ Abspielen',
@@ -1248,23 +1421,27 @@
                 'sim_step_label': 'Schritt',
                 'sim_initial': 'Anfangszustand',
                 
-                // STOPKA
                 'footer': 'Gothic Lock Studio',
                 'footer_author': 'erstellt von kesajXIII (kesaj13@tlen.pl)',
                 'footer_rights': 'Alle Rechte vorbehalten'
             },
             'ru': {
-                // MENU
                 'my_locks': 'МОИ ЗАМКИ',
                 'no_locks': 'Нет замков – нажмите "➕ Новый"',
                 'add_new': '➕ Новый',
                 'delete': '🗑 Удалить выбранный',
+                'export': '💾 Экспортировать замки',
+                'import': '📂 Импортировать замки',
                 'no_lock_to_delete': 'Нет замка для удаления',
                 'no_locks_to_delete': 'Нет замков для удаления',
+                'no_locks_to_export': '❌ Нет замков для экспорта',
+                'export_success': '✅ Экспорт завершен',
+                'import_success': '✅ Импортировано',
+                'import_error': '❌ Ошибка импорта: неверный файл',
+                'locks': 'замков',
                 'lock_deleted': 'Замок удален',
                 'added_lock': 'Новый замок добавлен',
                 
-                // EDYTOR
                 'editor_title': 'РЕДАКТОР ЗАМКА',
                 'name': 'Название:',
                 'name_placeholder': 'Введите название замка',
@@ -1277,7 +1454,6 @@
                 'solve': '🔓 Решить замок',
                 'status': 'Состояние: Добавьте новый замок, чтобы начать',
                 
-                // LEGENDA
                 'legend_title': 'Что означают символы?',
                 'legend_same': 'то же направление',
                 'legend_same_desc': ' – пин движется в том же направлении',
@@ -1288,20 +1464,17 @@
                 'legend_important': 'Важно:',
                 'legend_important_desc': 'Если вы не хотите, чтобы пин влиял на другие – не добавляйте для него правило.',
                 
-                // STATYSTYKI
                 'stats_title': 'Статистика',
                 'stats_moves': '• Наименьшее количество ходов:',
                 'stats_rules': '• Количество правил:',
                 'stats_pins': '• Количество пинов:',
                 'stats_default': '---',
                 
-                // WIZUALIZACJA
                 'visualization_title': '1. Состояние замка',
                 'visualization_empty': 'Добавьте замок, чтобы начать',
                 'visualization_hint': '💡 Нажмите на отверстие, чтобы установить болт',
                 'position_label': 'Позиция:',
                 
-                // ROZWIĄZANIE
                 'solution_title': 'Решение',
                 'solution_empty': 'Добавьте замок и нажмите "Решить замок"',
                 'solution_click': 'Нажмите "Решить замок", чтобы найти решение',
@@ -1312,7 +1485,6 @@
                 'direction_right': '→',
                 'direction_left': '←',
                 
-                // SYMULACJA
                 'sim_first': '⏮ Первый',
                 'sim_prev': '◀ Предыдущий',
                 'sim_play': '▶ Воспроизвести',
@@ -1324,7 +1496,6 @@
                 'sim_step_label': 'Шаг',
                 'sim_initial': 'Начальное состояние',
                 
-                // STOPKA
                 'footer': 'Gothic Lock Studio',
                 'footer_author': 'создано kesajXIII (kesaj13@tlen.pl)',
                 'footer_rights': 'Все права защищены'
@@ -1367,8 +1538,9 @@
         } else {
             setLanguage('pl');
         }
-     // ============================================================
-        // LICZNIK ODWIEDZIN (lokalny) - POPRAWIONY
+
+        // ============================================================
+        // LICZNIK ODWIEDZIN (lokalny)
         // ============================================================
         (function() {
             try {
@@ -1393,22 +1565,35 @@
                 }
             }
         })();
+
         // ============================================================
         // INICJACJA
         // ============================================================
-        currentLockIndex = -1;
-        enableControls(false);
-        renderLockList();
-        renderLockVisualization();
-        renderRules();
-        renderSolution();
-        updateStats();
-        updateSimulationControls(false);
-        updateStepInfo();
-        document.getElementById('statusMessage').textContent = 'Stan: Dodaj nowy zamek aby rozpocząć';
+
+        // Spróbuj wczytać zapisane zamki
+        const hasSavedLocks = loadLocksFromStorage();
+
+        if (hasSavedLocks && locks.length > 0) {
+            // Wczytaj pierwszy zamek z listy
+            currentLockIndex = 0;
+            loadLock(0);
+            document.getElementById('statusMessage').textContent = `Wczytano ${locks.length} zamków z pamięci`;
+        } else {
+            // Brak zapisanych zamków – stan początkowy
+            currentLockIndex = -1;
+            enableControls(false);
+            renderLockList();
+            renderLockVisualization();
+            renderRules();
+            renderSolution();
+            updateStats();
+            updateSimulationControls(false);
+            updateStepInfo();
+            document.getElementById('statusMessage').textContent = 'Stan: Dodaj nowy zamek aby rozpocząć';
+        }
 
         console.log('🔄 Gothic Lock Studio loaded successfully!');
-        console.log('📚 0 locks available - add your first lock!');
+        console.log(`📚 ${locks.length} locks available`);
     </script>
 </body>
 </html>
