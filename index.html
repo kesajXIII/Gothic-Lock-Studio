@@ -6,14 +6,13 @@
     <title>Gothic Lock Studio - Symulator zamków z Gothic Remake | Otwórz każdy zamek</title>
     <meta name="description" content="Interaktywny symulator zamków z Gothic Remake. Twórz własne zamki, układaj reguły i oglądaj rozwiązanie krok po kroku. Sprawdź, czy dasz radę otworzyć każdy zamek!" />
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-05ZW182D31"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-05ZW182D31');
-</script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-05ZW182D31"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-05ZW182D31');
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #1a1a1a; color: #c8c8c8; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
@@ -52,10 +51,15 @@
         .btn-solve:hover:not(:disabled) { background: #5a8a5a; }
         .btn-solve:disabled { opacity: 0.4; cursor: not-allowed; }
         .status { margin-top: 10px; padding: 8px; background: #1a1a1a; border-radius: 4px; color: #8a8a8a; font-style: italic; font-size: 13px; }
+        .status.locked { color: #ff8844; border-left: 3px solid #ff8844; }
         .lock-visualization { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 2px solid #6a5a3a; min-height: 200px; }
+        .lock-visualization.locked { border-color: #ff8844; opacity: 0.85; }
         .lock-pin { display: flex; align-items: center; margin-bottom: 8px; padding: 6px 10px; background: #2a2a2a; border: 2px solid #4a3a2a; border-radius: 4px; transition: all 0.3s ease; cursor: pointer; position: relative; }
         .lock-pin.selected { border-color: #ffcc44; background: #3a3a1a; box-shadow: 0 0 15px rgba(255, 204, 68, 0.3); }
         .lock-pin.highlighted { border-color: #ffcc44; box-shadow: 0 0 20px rgba(255, 204, 68, 0.5); }
+        .lock-pin.locked { opacity: 0.6; cursor: not-allowed; }
+        .lock-pin.locked .pin-hole { cursor: not-allowed; }
+        .lock-pin.locked .pin-hole:hover { border-color: #4a3a2a; background: #1a1a1a; }
         .pin-label { color: #b8a87a; font-weight: bold; font-size: 14px; width: 30px; text-align: center; flex-shrink: 0; }
         .pin-body { display: flex; flex: 1; justify-content: space-around; padding: 5px 10px; gap: 4px; }
         .pin-hole { width: 28px; height: 28px; border-radius: 50%; background: #1a1a1a; border: 2px solid #4a3a2a; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
@@ -65,6 +69,7 @@
         @keyframes pulse-bolt { 0%, 100% { box-shadow: 0 0 10px rgba(255, 204, 68, 0.5); } 50% { box-shadow: 0 0 20px rgba(255, 204, 68, 0.9); } }
         .pin-position { color: #6a6a6a; font-size: 11px; margin-left: 10px; min-width: 70px; text-align: right; flex-shrink: 0; }
         .pin-hint { color: #6a6a6a; font-size: 11px; font-style: italic; text-align: center; padding: 5px 0; border-top: 1px solid #2a2a2a; margin-top: 10px; }
+        .pin-hint.locked { color: #ff8844; }
         .solution-list { max-height: 120px; overflow-y: auto; background: #1a1a1a; padding: 8px; border-radius: 4px; }
         .solution-step { padding: 3px 5px; border-bottom: 1px solid #2a2a2a; font-size: 13px; color: #c8c8c8; cursor: pointer; transition: all 0.2s ease; }
         .solution-step:last-child { border-bottom: none; }
@@ -193,7 +198,7 @@
                 <div class="lock-visualization" id="lockVisualization">
                     <div class="empty-message" data-i18n="visualization_empty">Dodaj zamek aby rozpocząć</div>
                 </div>
-                <div class="pin-hint" data-i18n="visualization_hint">💡 Kliknij na otwór aby ustawić bołec</div>
+                <div class="pin-hint" id="pinHint" data-i18n="visualization_hint">💡 Kliknij na otwór aby ustawić bołec</div>
             </div>
 
             <div class="panel">
@@ -363,6 +368,7 @@
         let isPlaying = false;
         let playInterval = null;
         let speed = 800;
+        let isLockSolved = false; // 🔒 BLOKADA ZAPADEK PO ROZWIĄZANIU
 
         const solver = new LockSolver();
 
@@ -540,20 +546,43 @@
 
         function renderLockVisualization() {
             const container = document.getElementById('lockVisualization');
+            const hint = document.getElementById('pinHint');
             container.innerHTML = '';
+            
             if (currentLockIndex < 0 || currentLockIndex >= locks.length) {
                 container.innerHTML = '<div class="empty-message" data-i18n="visualization_empty">Wybierz lub dodaj zamek</div>';
+                container.className = 'lock-visualization';
+                if (hint) {
+                    hint.className = 'pin-hint';
+                    hint.textContent = '💡 Kliknij na otwór aby ustawić bołec';
+                }
                 return;
             }
+            
             const lock = locks[currentLockIndex];
             const lang = currentLanguage || 'pl';
             const t = translations[lang];
             const positionLabel = t.position_label || 'Pozycja:';
             
+            // Ustaw klasy wizualizacji
+            if (isLockSolved) {
+                container.className = 'lock-visualization locked';
+                if (hint) {
+                    hint.className = 'pin-hint locked';
+                    hint.textContent = '🔒 Zamek rozwiązany – zapadki zablokowane';
+                }
+            } else {
+                container.className = 'lock-visualization';
+                if (hint) {
+                    hint.className = 'pin-hint';
+                    hint.textContent = '💡 Kliknij na otwór aby ustawić bołec';
+                }
+            }
+            
             for (let i = 0; i < lock.pinCount; i++) {
                 const value = currentPins[i] || 4;
                 const pinDiv = document.createElement('div');
-                pinDiv.className = `lock-pin ${i === selectedPin ? 'selected' : ''} ${i === highlightedPin ? 'highlighted' : ''}`;
+                pinDiv.className = `lock-pin ${i === selectedPin ? 'selected' : ''} ${i === highlightedPin ? 'highlighted' : ''} ${isLockSolved ? 'locked' : ''}`;
                 pinDiv.onclick = () => onPinClick(i);
 
                 const label = document.createElement('div');
@@ -660,13 +689,16 @@
             
             if (!lock) {
                 container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_empty">${t.solution_empty || 'Dodaj zamek i kliknij "Rozwiąż zamek"'}</div>`;
+                updateSimulationControls(false);
                 return;
             }
+            
             if (!lock.solution || lock.solution.length === 0) {
                 container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_click">${t.solution_click || 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie'}</div>`;
                 updateSimulationControls(false);
                 return;
             }
+            
             container.innerHTML = '';
             lock.solution.forEach((step, index) => {
                 const div = document.createElement('div');
@@ -676,6 +708,8 @@
                 div.onclick = () => goToStep(index);
                 container.appendChild(div);
             });
+            
+            solutionSteps = lock.solution;
             updateSimulationControls(true);
             updateStepInfo();
         }
@@ -709,13 +743,14 @@
         // KONTROLKI SYMULACJI
         // ============================================================
         function updateSimulationControls(enabled) {
-            const hasSteps = solutionSteps && solutionSteps.length > 0;
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
+            const lock = locks[currentLockIndex];
+            const hasSteps = lock && lock.solution && lock.solution.length > 0;
             
             ['btnFirst', 'btnPrev', 'btnNext', 'btnLast'].forEach(id => {
                 const btn = document.getElementById(id);
-                if (btn) btn.disabled = !enabled || !hasSteps;
+                if (btn) {
+                    btn.disabled = !enabled || !hasSteps;
+                }
             });
             
             const playBtn = document.getElementById('btnPlay');
@@ -725,13 +760,15 @@
                 } else {
                     playBtn.disabled = false;
                     if (!isPlaying) {
+                        const lang = currentLanguage || 'pl';
+                        const t = translations[lang];
                         playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
                         playBtn.className = 'btn-play';
                     }
                 }
             }
             
-            if (hasSteps) {
+            if (hasSteps && enabled) {
                 document.getElementById('btnFirst').disabled = currentStepIndex <= 0;
                 document.getElementById('btnPrev').disabled = currentStepIndex <= 0;
                 document.getElementById('btnNext').disabled = currentStepIndex >= solutionSteps.length - 1;
@@ -851,13 +888,25 @@
         // INTERAKCJE
         // ============================================================
         function onPinClick(index) {
+            if (isLockSolved) return; // 🔒 BLOKADA
             selectedPin = selectedPin === index ? -1 : index;
             renderLockVisualization();
         }
 
         function onHoleClick(pinIndex, holeIndex) {
+            // 🔒 BLOKADA: jeśli zamek jest rozwiązany, nie można zmieniać zapadek
+            if (isLockSolved) {
+                const lang = currentLanguage || 'pl';
+                const t = translations[lang];
+                const status = document.getElementById('statusMessage');
+                status.textContent = t.lock_solved_blocked || '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek. Zmień coś w zamku aby odblokować.';
+                status.className = 'status locked';
+                return;
+            }
+            
             const lock = locks[currentLockIndex];
             if (!lock) return;
+            
             const newValue = holeIndex + 1;
             if (currentPins[pinIndex] !== newValue) {
                 currentPins[pinIndex] = newValue;
@@ -867,10 +916,13 @@
                 currentStepIndex = -1;
                 highlightedPin = -1;
                 selectedPin = -1;
+                isLockSolved = false; // reset blokady
                 stopPlayback();
                 renderLockVisualization();
                 renderSolution();
-                document.getElementById('statusMessage').textContent = 'Stan zmieniony - kliknij "Rozwiąż zamek"';
+                const status = document.getElementById('statusMessage');
+                status.textContent = 'Stan zmieniony - kliknij "Rozwiąż zamek"';
+                status.className = 'status';
                 updateStats();
                 updateSimulationControls(false);
                 updateStepInfo();
@@ -884,6 +936,7 @@
         function loadLock(index) {
             if (index < 0 || index >= locks.length) {
                 currentLockIndex = -1;
+                isLockSolved = false;
                 renderLockList();
                 renderLockVisualization();
                 renderRules();
@@ -902,8 +955,10 @@
             currentStepIndex = -1;
             solutionSteps = [];
             stopPlayback();
-
+            
             const lock = locks[index];
+            isLockSolved = !!(lock.solution && lock.solution.length > 0);
+            
             document.getElementById('lockName').value = lock.name;
             document.getElementById('lockDesc').value = lock.description || '';
             document.getElementById('pinCount').value = lock.pinCount;
@@ -914,11 +969,12 @@
             renderRules();
             renderSolution();
             updateStats();
-            updateSimulationControls(false);
+            updateSimulationControls(true);
             updateStepInfo();
             
             enableControls(true);
             document.getElementById('statusMessage').textContent = `Załadowno: ${lock.name}`;
+            document.getElementById('statusMessage').className = 'status';
         }
 
         function enableControls(enabled) {
@@ -946,9 +1002,10 @@
                 `Nowy zamek ${locks.length + 1}`,
                 "Nowy zamek do edycji",
                 3,
-                [1, 1, 1], []
+                [4, 4, 4], []
             );
             locks.push(newLock);
+            isLockSolved = false;
             loadLock(locks.length - 1);
             const lang = currentLanguage || 'pl';
             const t = translations[lang];
@@ -972,6 +1029,7 @@
             if (!confirm(`Czy na pewno usunąć zamek "${lock.name}"?`)) return;
 
             locks.splice(currentLockIndex, 1);
+            isLockSolved = false;
             if (locks.length === 0) {
                 currentLockIndex = -1;
                 enableControls(false);
@@ -1001,6 +1059,7 @@
             const lock = locks[currentLockIndex];
             if (!lock) return;
             lock.rules.push(new Rule(1, 2, 1));
+            isLockSolved = false; // odblokuj po zmianie reguł
             renderRules();
             lock.solution = [];
             solutionSteps = [];
@@ -1011,6 +1070,7 @@
             updateSimulationControls(false);
             updateStepInfo();
             document.getElementById('statusMessage').textContent = 'Dodano regułę';
+            document.getElementById('statusMessage').className = 'status';
             autoSave();
         }
 
@@ -1018,6 +1078,7 @@
             const lock = locks[currentLockIndex];
             if (!lock) return;
             lock.rules.splice(index, 1);
+            isLockSolved = false; // odblokuj po zmianie reguł
             renderRules();
             lock.solution = [];
             solutionSteps = [];
@@ -1028,6 +1089,7 @@
             updateSimulationControls(false);
             updateStepInfo();
             document.getElementById('statusMessage').textContent = 'Usunięto regułę';
+            document.getElementById('statusMessage').className = 'status';
             autoSave();
         }
 
@@ -1037,6 +1099,7 @@
             if (field === 0) lock.rules[index].fromPin = value;
             else if (field === 1) lock.rules[index].toPin = value;
             else if (field === 2) lock.rules[index].direction = value;
+            isLockSolved = false; // odblokuj po zmianie reguł
             lock.solution = [];
             solutionSteps = [];
             currentStepIndex = -1;
@@ -1045,6 +1108,7 @@
             updateStats();
             updateSimulationControls(false);
             updateStepInfo();
+            document.getElementById('statusMessage').className = 'status';
             autoSave();
         }
 
@@ -1057,7 +1121,6 @@
             
             // Walidacja: sprawdź czy initialPins są ustawione
             if (!lock.initialPins || lock.initialPins.length !== lock.pinCount) {
-                // Inicjalizacja domyślnymi wartościami
                 lock.initialPins = [];
                 for (let i = 0; i < lock.pinCount; i++) {
                     lock.initialPins[i] = 4;
@@ -1070,7 +1133,6 @@
             
             lock.initialPins = [...currentPins];
             const solution = solver.solve(lock);
-
             const lang = currentLanguage || 'pl';
             const t = translations[lang];
 
@@ -1081,16 +1143,21 @@
                 highlightedPin = -1;
                 stopPlayback();
                 currentPins = [...lock.initialPins];
-                const foundMsg = t.solution_found || '✅ Rozwiązanie znalezione!';
-                const movesWord = t.solution_moves || 'ruchów';
-                document.getElementById('statusMessage').textContent = `${foundMsg} ${solution.length} ${movesWord}`;
-                document.getElementById('statusMessage').style.color = '#8a8';
+                isLockSolved = true; // 🔒 BLOKUJEMY ZAPADKI
+                
+                const status = document.getElementById('statusMessage');
+                status.textContent = `${t.solution_found || '✅ Rozwiązanie znalezione!'} ${solution.length} ${t.solution_moves || 'ruchów'}`;
+                status.className = 'status';
+                status.style.color = '#8a8';
             } else {
                 lock.solution = [];
                 solutionSteps = [];
                 currentStepIndex = -1;
-                document.getElementById('statusMessage').textContent = t.solution_not_found || '❌ Nie znaleziono rozwiązania!';
-                document.getElementById('statusMessage').style.color = '#a88';
+                isLockSolved = false;
+                const status = document.getElementById('statusMessage');
+                status.textContent = t.solution_not_found || '❌ Nie znaleziono rozwiązania!';
+                status.className = 'status';
+                status.style.color = '#a88';
             }
             renderLockVisualization();
             renderSolution();
@@ -1179,6 +1246,7 @@
             lock.solution = [];
             solutionSteps = [];
             currentStepIndex = -1;
+            isLockSolved = false;
             stopPlayback();
             renderLockVisualization();
             renderRules();
@@ -1187,6 +1255,7 @@
             updateSimulationControls(false);
             updateStepInfo();
             document.getElementById('statusMessage').textContent = `Zmieniono ilość zapadek na ${newCount}`;
+            document.getElementById('statusMessage').className = 'status';
             autoSave();
         });
 
@@ -1216,6 +1285,7 @@
                 'locks': 'zamków',
                 'lock_deleted': 'Usunięto zamek',
                 'added_lock': 'Dodano nowy zamek',
+                'lock_solved_blocked': '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek. Zmień coś w zamku aby odblokować.',
                 
                 'editor_title': 'EDYTOR ZAMKA',
                 'name': 'Nazwa:',
@@ -1291,6 +1361,7 @@
                 'locks': 'locks',
                 'lock_deleted': 'Lock deleted',
                 'added_lock': 'New lock added',
+                'lock_solved_blocked': '🔒 Lock solved – you cannot change pins. Change something in the lock to unlock.',
                 
                 'editor_title': 'LOCK EDITOR',
                 'name': 'Name:',
@@ -1366,6 +1437,7 @@
                 'locks': 'Schlösser',
                 'lock_deleted': 'Schloss gelöscht',
                 'added_lock': 'Neues Schloss hinzugefügt',
+                'lock_solved_blocked': '🔒 Schloss gelöst – du kannst die Stifte nicht ändern. Ändere etwas am Schloss, um es zu entsperren.',
                 
                 'editor_title': 'SCHLOSS-EDITOR',
                 'name': 'Name:',
@@ -1441,6 +1513,7 @@
                 'locks': 'замков',
                 'lock_deleted': 'Замок удален',
                 'added_lock': 'Новый замок добавлен',
+                'lock_solved_blocked': '🔒 Замок решен – вы не можете менять пины. Измените что-то в замке, чтобы разблокировать.',
                 
                 'editor_title': 'РЕДАКТОР ЗАМКА',
                 'name': 'Название:',
@@ -1574,13 +1647,13 @@
         const hasSavedLocks = loadLocksFromStorage();
 
         if (hasSavedLocks && locks.length > 0) {
-            // Wczytaj pierwszy zamek z listy
             currentLockIndex = 0;
             loadLock(0);
             document.getElementById('statusMessage').textContent = `Wczytano ${locks.length} zamków z pamięci`;
+            document.getElementById('statusMessage').className = 'status';
         } else {
-            // Brak zapisanych zamków – stan początkowy
             currentLockIndex = -1;
+            isLockSolved = false;
             enableControls(false);
             renderLockList();
             renderLockVisualization();
@@ -1590,6 +1663,7 @@
             updateSimulationControls(false);
             updateStepInfo();
             document.getElementById('statusMessage').textContent = 'Stan: Dodaj nowy zamek aby rozpocząć';
+            document.getElementById('statusMessage').className = 'status';
         }
 
         console.log('🔄 Gothic Lock Studio loaded successfully!');
