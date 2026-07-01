@@ -1,1691 +1,1780 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gothic Lock Studio - Symulator zamków z Gothic Remake | Otwórz każdy zamek</title>
-    <meta name="description" content="Interaktywny symulator zamków z Gothic Remake. Twórz własne zamki, układaj reguły i oglądaj rozwiązanie krok po kroku. Sprawdź, czy dasz radę otworzyć każdy zamek!" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-05ZW182D31"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-05ZW182D31');
-    </script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #1a1a1a; color: #c8c8c8; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 220px 1fr 1fr; gap: 15px; }
-        .panel { background: #2a2a2a; border: 1px solid #4a3a2a; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .panel-title { color: #b8a87a; font-size: 16px; font-weight: bold; border-bottom: 1px solid #4a3a2a; padding-bottom: 10px; margin-bottom: 15px; }
-        .panel-title .badge { background: #4a3a2a; color: #b8a87a; font-size: 10px; padding: 2px 8px; border-radius: 10px; float: right; font-weight: normal; }
-        .empty-message { color: #6a6a6a; font-style: italic; padding: 20px; text-align: center; border: 2px dashed #3a3a3a; border-radius: 8px; margin: 10px 0; }
-        .lock-list { list-style: none; padding: 0; margin: 0; }
-        .lock-list li { padding: 10px 12px; cursor: pointer; border-radius: 4px; border-left: 3px solid transparent; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
-        .lock-list li:hover { background: #333; }
-        .lock-list li.active { background: #3a3a1a; border-left-color: #b8a87a; }
-        .lock-list .badge { background: #4a3a2a; color: #b8a87a; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
-        .btn-add { background: #2a4a6a; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 14px; }
-        .btn-add:hover { background: #3a5a7a; }
-        .btn-delete { background: #6a2a2a; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-top: 5px; width: 100%; font-size: 14px; }
-        .btn-delete:hover { background: #8a2a2a; }
-        .btn-export { background: #2a4a6a; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-top: 5px; width: 100%; font-size: 14px; }
-        .btn-export:hover { background: #3a5a7a; }
-        .btn-import { background: #4a6a2a; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-top: 5px; width: 100%; font-size: 14px; }
-        .btn-import:hover { background: #5a8a3a; }
-        .editor-field { margin-bottom: 10px; }
-        .editor-field label { display: inline-block; width: 80px; color: #aaa; font-size: 13px; }
-        .editor-field input, .editor-field select { background: #1a1a1a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 10px; width: calc(100% - 90px); }
-        .rules-list { max-height: 150px; overflow-y: auto; margin-bottom: 10px; }
-        .rule-row { display: flex; align-items: center; gap: 5px; padding: 4px 0; border-bottom: 1px solid #333; }
-        .rule-row .rule-number { color: #6a6a6a; font-size: 12px; min-width: 25px; }
-        .rule-row input[type="number"] { width: 35px; background: #1a1a1a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 3px; padding: 3px 5px; text-align: center; }
-        .rule-row select { background: #1a1a1a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 3px; padding: 3px 5px; }
-        .rule-row .btn-remove { background: #6a2a2a; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 2px 8px; font-size: 12px; }
-        .rule-row .btn-remove:hover { background: #8a2a2a; }
-        .no-rules { color: #6a6a6a; font-style: italic; padding: 10px; text-align: center; }
-        .btn-add-rule { background: #2a4a2a; color: white; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer; margin: 5px 0; }
-        .btn-add-rule:hover { background: #3a5a3a; }
-        .btn-solve { background: #4a7a4a; color: white; border: none; border-radius: 4px; padding: 8px 20px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; }
-        .btn-solve:hover:not(:disabled) { background: #5a8a5a; }
-        .btn-solve:disabled { opacity: 0.4; cursor: not-allowed; }
-        .status { margin-top: 10px; padding: 8px; background: #1a1a1a; border-radius: 4px; color: #8a8a8a; font-style: italic; font-size: 13px; }
-        .status.locked { color: #ff8844; border-left: 3px solid #ff8844; }
-        .lock-visualization { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 2px solid #6a5a3a; min-height: 200px; }
-        .lock-visualization.locked { border-color: #ff8844; opacity: 0.85; }
-        .lock-pin { display: flex; align-items: center; margin-bottom: 8px; padding: 6px 10px; background: #2a2a2a; border: 2px solid #4a3a2a; border-radius: 4px; transition: all 0.3s ease; cursor: pointer; position: relative; }
-        .lock-pin.selected { border-color: #ffcc44; background: #3a3a1a; box-shadow: 0 0 15px rgba(255, 204, 68, 0.3); }
-        .lock-pin.highlighted { border-color: #ffcc44; box-shadow: 0 0 20px rgba(255, 204, 68, 0.5); }
-        .lock-pin.locked { opacity: 0.6; cursor: not-allowed; }
-        .lock-pin.locked .pin-hole { cursor: not-allowed; }
-        .lock-pin.locked .pin-hole:hover { border-color: #4a3a2a; background: #1a1a1a; }
-        .pin-label { color: #b8a87a; font-weight: bold; font-size: 14px; width: 30px; text-align: center; flex-shrink: 0; }
-        .pin-body { display: flex; flex: 1; justify-content: space-around; padding: 5px 10px; gap: 4px; }
-        .pin-hole { width: 28px; height: 28px; border-radius: 50%; background: #1a1a1a; border: 2px solid #4a3a2a; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
-        .pin-hole:hover { border-color: #8a7a5a; background: #2a2a2a; }
-        .pin-hole.has-pin { border-color: #b8a87a; background: #2a2a1a; }
-        .pin-bolt { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffdd44, #cc9900); border: 2px solid #b8860b; box-shadow: 0 0 10px rgba(255, 204, 68, 0.5); animation: pulse-bolt 1.5s ease-in-out infinite; }
-        @keyframes pulse-bolt { 0%, 100% { box-shadow: 0 0 10px rgba(255, 204, 68, 0.5); } 50% { box-shadow: 0 0 20px rgba(255, 204, 68, 0.9); } }
-        .pin-position { color: #6a6a6a; font-size: 11px; margin-left: 10px; min-width: 70px; text-align: right; flex-shrink: 0; }
-        .pin-hint { color: #6a6a6a; font-size: 11px; font-style: italic; text-align: center; padding: 5px 0; border-top: 1px solid #2a2a2a; margin-top: 10px; }
-        .pin-hint.locked { color: #ff8844; }
-        .solution-list { max-height: 120px; overflow-y: auto; background: #1a1a1a; padding: 8px; border-radius: 4px; }
-        .solution-step { padding: 3px 5px; border-bottom: 1px solid #2a2a2a; font-size: 13px; color: #c8c8c8; cursor: pointer; transition: all 0.2s ease; }
-        .solution-step:last-child { border-bottom: none; }
-        .solution-step:hover { background: #2a2a2a; }
-        .solution-step.active { color: #ffcc44; background: #3a3a1a; border-left: 3px solid #ffcc44; padding-left: 10px; }
-        .solution-step.done { color: #6a8a6a; }
-        .simulation-controls { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
-        .simulation-controls button { background: #3a3a3a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 12px; transition: all 0.2s ease; }
-        .simulation-controls button:hover:not(:disabled) { background: #4a4a4a; border-color: #b8a87a; }
-        .simulation-controls button:disabled { opacity: 0.3; cursor: not-allowed; }
-        .simulation-controls .btn-play { background: #2a4a2a; border-color: #4a6a4a; min-width: 80px; }
-        .simulation-controls .btn-play:hover:not(:disabled) { background: #3a5a3a; }
-        .simulation-controls .btn-play.playing { background: #6a2a2a; border-color: #8a3a3a; }
-        .simulation-controls .btn-play.playing:hover:not(:disabled) { background: #8a2a2a; }
-        .simulation-controls .step-info { color: #8a8a8a; font-size: 12px; margin-left: auto; }
-        .simulation-controls .speed-control { display: flex; align-items: center; gap: 5px; }
-        .simulation-controls .speed-control input[type="range"] { width: 60px; height: 4px; background: #4a3a2a; border-radius: 2px; accent-color: #b8a87a; }
-        .simulation-controls .speed-control span { color: #8a8a8a; font-size: 11px; min-width: 30px; }
-        .stats { font-size: 12px; color: #8a8a8a; padding: 5px 0; }
-        .stats span { margin-right: 15px; }
-        .footer { grid-column: 1 / -1; text-align: center; padding: 20px 0 10px; border-top: 1px solid #4a3a2a; color: #6a6a6a; font-size: 13px; }
-        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } .pin-body { gap: 2px; padding: 5px; } .pin-hole { width: 22px; height: 22px; } .pin-bolt { width: 14px; height: 14px; } }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; }
-        ::-webkit-scrollbar-thumb { background: #4a3a2a; border-radius: 3px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gothic Lock Studio – Symulator Zamków (Izometryczny)</title>
+  <meta name="description" content="Interaktywny symulator zamków w klimacie Gothic Remake z widokiem izometrycznym." />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-05ZW182D31"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-05ZW182D31');
+  </script>
+  <style>
+    /* === RESET & GLOBALNY STYL ŚREDNIOWIECZNY === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #1a1410;
+      background-image: radial-gradient(circle at 20% 30%, #2f241c 0%, #130f0c 100%);
+      color: #bcb0a4;
+      font-family: 'Palatino Linotype', 'Book Antiqua', 'Georgia', serif;
+      padding: 20px;
+      min-height: 100vh;
+      border-top: 6px solid #3d2c1e;
+      border-bottom: 6px solid #1f1610;
+      box-shadow: inset 0 0 80px rgba(0,0,0,0.8);
+    }
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 240px 1fr 1fr 280px;
+      gap: 16px;
+      background: rgba(20, 16, 12, 0.55);
+      backdrop-filter: blur(2px);
+      padding: 16px;
+      border-radius: 32px 32px 16px 16px;
+      border: 1px solid #4f3b2a;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0 2px #2d2018 inset;
+    }
+    /* === PANELE – jak stare kamienne tablice === */
+    .panel {
+      background: #231d17;
+      background: linear-gradient(145deg, #2b221b 0%, #1a1410 100%);
+      border: 2px solid #4d3826;
+      border-radius: 20px 8px 20px 8px;
+      padding: 16px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 0 #0e0a08, inset 0 2px 4px rgba(100, 70, 40, 0.2);
+      position: relative;
+    }
+    .panel::before {
+      content: '';
+      position: absolute;
+      top: 4px; left: 12px; right: 12px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #7a5d42, transparent);
+      opacity: 0.3;
+    }
+    .panel-title {
+      color: #cfb694;
+      font-size: 16px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-shadow: 2px 2px 0 #0a0806;
+      border-bottom: 2px solid #4d3826;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title .badge {
+      background: #3d2c1e;
+      color: #b89f7a;
+      font-size: 10px;
+      padding: 2px 12px;
+      border-radius: 30px;
+      margin-left: auto;
+      border: 1px solid #5f4532;
+      box-shadow: inset 0 0 6px #1f130c;
+    }
+    .panel-title .badge i { font-style: normal; }
+    
+    /* === LISTA ZAMKÓW === */
+    .lock-list { list-style: none; padding: 0; margin: 0; }
+    .lock-list li {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 12px 4px 12px 4px;
+      border-left: 6px solid #3f2d1d;
+      margin-bottom: 6px;
+      background: #1e1813;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: #c5b29b;
+      box-shadow: inset 0 1px 0 #3f3022;
+    }
+    .lock-list li:hover { background: #2f241c; border-left-color: #b88a5a; transform: scale(1.01); }
+    .lock-list li.active { background: #362a1f; border-left-color: #dbb07c; color: #f0dbbc; box-shadow: 0 0 16px #5f3f28; }
+    .lock-list .badge { background: #2e2018; padding: 3px 12px; border-radius: 30px; font-size: 10px; color: #b48d66; border: 1px solid #5a3f2b; }
+    .empty-message { color: #6f5d4a; font-style: italic; padding: 20px 10px; text-align: center; border: 2px dashed #4d3826; border-radius: 16px; background: #1a130e; }
+    
+    /* === PRZYCISKI === */
+    .btn {
+      background: #31261d;
+      border: 2px solid #5a4230;
+      color: #dccbbc;
+      padding: 8px 12px;
+      border-radius: 30px 6px 30px 6px;
+      font-weight: bold;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 6px 0 #0f0b08, inset 0 1px 0 #6b4f38;
+      text-shadow: 1px 1px 0 #0a0806;
+      width: 100%;
+      margin-top: 6px;
+      text-align: center;
+      font-family: inherit;
+    }
+    .btn:hover:not(:disabled) { background: #3f3024; border-color: #806043; transform: translateY(-2px); box-shadow: 0 8px 0 #0f0b08; }
+    .btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 #0f0b08; }
+    .btn:disabled { opacity: 0.5; filter: grayscale(0.5); cursor: not-allowed; transform: none; }
+    .btn-add { background: #2a3f2a; border-color: #3f6a3f; }
+    .btn-delete { background: #4a2a24; border-color: #6a3a30; }
+    .btn-export { background: #2d3d4a; border-color: #3e5a6a; }
+    .btn-import { background: #3d4a2d; border-color: #5a6a3e; }
+    .btn-solve { background: #3d5a2d; border-color: #5a7a3e; font-size: 15px; padding: 10px; }
+    .btn-add-rule { background: #2d3d2a; border-color: #3f5a3a; width: auto; padding: 5px 16px; display: inline-block; }
+    .btn-remove { background: #4a2820; border: 1px solid #6a3a2a; color: #dbb8a0; padding: 2px 12px; border-radius: 30px; font-size: 12px; }
+    
+    .editor-field {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .editor-field label { width: 70px; color: #ab947c; font-weight: 600; font-size: 13px; text-shadow: 1px 1px 0 #0a0806; }
+    .editor-field input, .editor-field select {
+      background: #1c1611;
+      border: 2px solid #4d3826;
+      border-radius: 30px 4px 30px 4px;
+      padding: 6px 12px;
+      color: #dfd0be;
+      font-family: inherit;
+      font-size: 13px;
+      flex: 1;
+      min-width: 100px;
+      box-shadow: inset 0 4px 8px #0a0806;
+      outline: none;
+    }
+    .editor-field input:focus, .editor-field select:focus { border-color: #b88a5a; box-shadow: 0 0 12px #6f4f2e; }
+    
+    .rules-list {
+      max-height: 140px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+      background: #1a130e;
+      border-radius: 12px 4px 12px 4px;
+      padding: 6px 8px;
+      border: 1px solid #3f2d1d;
+    }
+    .rule-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 4px;
+      border-bottom: 1px solid #2f221a;
+      flex-wrap: wrap;
+    }
+    .rule-row .rule-number { color: #7a6550; font-size: 12px; min-width: 24px; }
+    .rule-row input[type="number"] { width: 38px; background: #1c1611; border: 1px solid #4d3826; border-radius: 30px; padding: 3px 5px; color: #dfd0be; text-align: center; }
+    .rule-row select { background: #1c1611; border: 1px solid #4d3826; border-radius: 30px; padding: 3px 6px; color: #dfd0be; }
+    .no-rules { color: #6f5d4a; font-style: italic; padding: 12px; text-align: center; }
+    
+    .legend-box {
+      background: #1f1712;
+      border: 2px solid #4d3826;
+      border-radius: 16px 4px 16px 4px;
+      padding: 12px 10px;
+      margin-top: 12px;
+      box-shadow: inset 0 0 30px #0a0806;
+    }
+    .legend-box > div:first-child {
+      color: #cfb694;
+      font-weight: bold;
+      font-size: 14px;
+      border-bottom: 1px solid #4d3826;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 8px;
+      background: #1a130e;
+      border-radius: 30px 4px 30px 4px;
+      margin-bottom: 3px;
+      border-left: 3px solid #5a4030;
+      font-size: 12px;
+    }
+    .legend-row .sym { font-weight: bold; font-size: 18px; min-width: 30px; text-align: center; }
+    .legend-row .desc { color: #bcb0a4; }
+    .legend-row .desc strong { color: #dbb07c; }
+    .legend-important {
+      margin-top: 8px;
+      padding: 6px;
+      background: #1a130e;
+      border: 1px dashed #4d3826;
+      border-radius: 30px 4px 30px 4px;
+      font-size: 11px;
+      color: #7a6550;
+      text-align: center;
+    }
+    
+    /* === WIZUALIZACJA ZAMKA === */
+    .lock-visualization {
+      background: #1a130e;
+      padding: 14px 12px;
+      border-radius: 24px 4px 24px 4px;
+      border: 3px solid #5a4030;
+      min-height: 180px;
+      box-shadow: inset 0 0 40px #0a0806;
+      perspective: 800px;
+      perspective-origin: 50% 50%;
+    }
+    .lock-visualization.locked { border-color: #8a4a2a; opacity: 0.8; }
+    .lock-visualization.solved { border-color: #4a8a3a; box-shadow: 0 0 40px rgba(74, 138, 58, 0.2); }
+    
+    .lock-pin {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      background: #241d16;
+      border: 2px solid #4d3826;
+      border-radius: 40px 6px 40px 6px;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      box-shadow: inset 0 2px 0 #3f2d1d;
+      transform: rotateX(4deg) rotateY(-2deg);
+      transform-style: preserve-3d;
+      position: relative;
+      min-height: 55px;
+    }
+    .lock-pin::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 10%;
+      width: 80%;
+      height: 5px;
+      background: rgba(0,0,0,0.4);
+      filter: blur(4px);
+      border-radius: 50%;
+      transform: rotateX(90deg) translateZ(-10px);
+    }
+    .lock-pin.selected { border-color: #dbb07c; background: #362a1f; box-shadow: 0 0 20px #6f4f2e, inset 0 0 10px #3f2d1d; transform: rotateX(4deg) rotateY(-2deg) translateZ(6px); }
+    .lock-pin.highlighted { border-color: #f0d08a; box-shadow: 0 0 28px #b88a5a; transform: rotateX(4deg) rotateY(-2deg) translateZ(8px); }
+    .lock-pin.locked { opacity: 0.6; cursor: not-allowed; transform: rotateX(4deg) rotateY(-2deg) scale(0.98); }
+    .lock-pin.solved { border-color: #4a8a3a; box-shadow: 0 0 30px rgba(74, 138, 58, 0.3); }
+    
+    .pin-label {
+      color: #b89f7a;
+      font-weight: bold;
+      font-size: 14px;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+      text-shadow: 1px 1px 0 #0a0806;
+      transform: translateZ(10px);
+    }
+    .pin-body {
+      display: flex;
+      flex: 1;
+      justify-content: space-around;
+      padding: 3px 4px;
+      gap: 4px;
+      transform: translateZ(8px);
+    }
+    .pin-hole {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1a130e;
+      border: 3px solid #4d3826;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 4px 8px #0a0806, 0 2px 4px rgba(0,0,0,0.4);
+      transform: rotateX(6deg) rotateY(2deg);
+      position: relative;
+    }
+    .pin-hole:hover { border-color: #b88a5a; background: #2f241c; transform: rotateX(6deg) rotateY(2deg) scale(1.08); }
+    .pin-hole.has-pin { border-color: #b89f7a; background: #2f241c; box-shadow: inset 0 4px 8px #0a0806, 0 0 16px rgba(184, 159, 122, 0.2); }
+    .pin-bolt {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #eac78a, #ac7c3a);
+      border: 2px solid #7a5a2a;
+      box-shadow: 0 0 20px rgba(219, 160, 80, 0.4), inset 0 -2px 4px rgba(0,0,0,0.3);
+      transition: all 0.4s ease;
+      position: relative;
+    }
+    .pin-bolt.solved-bolt {
+      background: radial-gradient(circle at 35% 30%, #7ada4a, #3a8a1a);
+      border-color: #2a6a0a;
+      box-shadow: 0 0 30px rgba(74, 218, 58, 0.6), inset 0 -2px 4px rgba(0,0,0,0.3);
+      animation: pulse-solved 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse-solved {
+      0%, 100% { box-shadow: 0 0 20px rgba(74, 218, 58, 0.4); transform: scale(1); }
+      50% { box-shadow: 0 0 40px rgba(74, 218, 58, 0.8); transform: scale(1.1); }
+    }
+    
+    .pin-position {
+      color: #7a6550;
+      font-size: 11px;
+      margin-left: 8px;
+      min-width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+      transform: translateZ(10px);
+    }
+    .pin-position.solved-pos { color: #6aaa4a; }
+    
+    .pin-hint {
+      color: #7a6550;
+      font-size: 12px;
+      font-style: italic;
+      text-align: center;
+      padding: 6px 0;
+      border-top: 1px solid #3f2d1d;
+      margin-top: 8px;
+    }
+    .pin-hint.locked { color: #b86a3a; }
+    .pin-hint.solved-hint { color: #6aaa4a; }
+    
+    .solution-list {
+      max-height: 110px;
+      overflow-y: auto;
+      background: #1a130e;
+      padding: 6px 8px;
+      border-radius: 16px 4px 16px 4px;
+      border: 1px solid #3f2d1d;
+      scroll-behavior: smooth;
+    }
+    .solution-step {
+      padding: 4px 6px;
+      border-bottom: 1px solid #2f221a;
+      font-size: 13px;
+      color: #bcb0a4;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border-left: 4px solid transparent;
+    }
+    .solution-step:last-child { border-bottom: none; }
+    .solution-step:hover { background: #2f241c; }
+    .solution-step.active { color: #f0dbbc; background: #362a1f; border-left-color: #dbb07c; }
+    .solution-step.done { color: #7a9a6a; }
+    
+    .simulation-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .simulation-controls button {
+      background: #231d17;
+      border: 2px solid #4d3826;
+      color: #c5b29b;
+      padding: 4px 12px;
+      border-radius: 30px 4px 30px 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 4px 0 #0f0b08;
+      font-family: inherit;
+    }
+    .simulation-controls button:hover:not(:disabled) { background: #3f3024; border-color: #806043; transform: translateY(-2px); }
+    .simulation-controls button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .simulation-controls .btn-play { background: #2a3f2a; border-color: #4a6a3a; min-width: 80px; }
+    .simulation-controls .btn-play.playing { background: #6a2a2a; border-color: #8a3a3a; }
+    .simulation-controls .speed-control { display: flex; align-items: center; gap: 6px; margin-left: 4px; }
+    .simulation-controls .speed-control input[type="range"] { width: 60px; height: 5px; background: #3f2d1d; border-radius: 10px; accent-color: #b88a5a; }
+    .step-info { color: #7a6550; font-size: 12px; margin-left: auto; }
+    
+    .stats { font-size: 13px; color: #ab947c; padding: 4px 4px; }
+    .stats span {
+      display: inline-block;
+      margin-right: 14px;
+      background: #1a130e;
+      padding: 3px 12px;
+      border-radius: 30px 4px 30px 4px;
+      border: 1px solid #3f2d1d;
+      font-size: 12px;
+    }
+    
+    .status {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #1a130e;
+      border-radius: 30px 4px 30px 4px;
+      border-left: 6px solid #4d3826;
+      color: #ab947c;
+      font-style: italic;
+      font-size: 13px;
+    }
+    .status.locked { border-left-color: #b86a3a; color: #dba070; }
+    .status.solved { border-left-color: #4a8a3a; color: #6aaa4a; }
+    
+    .footer {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 20px 0 10px;
+      border-top: 3px solid #4d3826;
+      color: #7a6550;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .footer a { color: #b88a5a; text-decoration: none; font-weight: bold; border-bottom: 1px solid #5a4030; }
+    .footer a:hover { color: #dbb07c; }
+    
+    .language-selector {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 0 6px;
+      flex-wrap: wrap;
+      border-bottom: 2px solid #4d3826;
+      margin-bottom: 10px;
+    }
+    .lang-btn {
+      background: #231d17;
+      border: 2px solid #4d3826;
+      color: #bcb0a4;
+      padding: 4px 14px;
+      border-radius: 30px 4px 30px 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.15s;
+      box-shadow: 0 4px 0 #0a0806;
+    }
+    .lang-btn:hover { background: #3f3024; border-color: #806043; transform: translateY(-2px); }
+    
+    #visitorCount {
+      background: #1a130e;
+      padding: 4px 16px;
+      border-radius: 30px 4px 30px 4px;
+      border: 1px solid #4d3826;
+      display: inline-block;
+      font-size: 12px;
+    }
+    
+    /* === NOWA SEKCJA - JAK TO DZIAŁA (INSTRUKCJA) === */
+    .tutorial-panel {
+      background: #1f1813;
+      background: linear-gradient(160deg, #2a201a 0%, #16100c 100%);
+      border: 2px solid #4d3826;
+      border-radius: 20px 8px 20px 8px;
+      padding: 14px 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 0 #0e0a08, inset 0 2px 4px rgba(100, 70, 40, 0.2);
+    }
+    .tutorial-title {
+      color: #cfb694;
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-shadow: 2px 2px 0 #0a0806;
+      border-bottom: 2px solid #4d3826;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tutorial-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      background: #1a130e;
+      border-radius: 12px 4px 12px 4px;
+      margin-bottom: 8px;
+      border-left: 3px solid #5a4030;
+      transition: all 0.3s ease;
+    }
+    .tutorial-step:hover {
+      border-left-color: #dbb07c;
+      background: #2a1f18;
+    }
+    .tutorial-step .num {
+      font-size: 18px;
+      font-weight: bold;
+      color: #b89f7a;
+      min-width: 28px;
+      text-align: center;
+      font-family: 'Georgia', serif;
+    }
+    .tutorial-step .content {
+      flex: 1;
+    }
+    .tutorial-step .content .title {
+      color: #dbb07c;
+      font-weight: bold;
+      font-size: 13px;
+      font-family: 'Georgia', serif;
+    }
+    .tutorial-step .content .desc {
+      color: #bcb0a4;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+    .tutorial-step .content .desc code {
+      background: #2a1f18;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #dbb07c;
+      font-family: 'Georgia', serif;
+    }
+    .tutorial-demo {
+      background: #14100c;
+      border: 1px solid #4d3826;
+      border-radius: 12px 4px 12px 4px;
+      padding: 8px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tutorial-demo .demo-pin {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #1f1813;
+      padding: 4px 8px;
+      border-radius: 20px 4px 20px 4px;
+      border: 1px solid #4d3826;
+    }
+    .tutorial-demo .demo-pin .demo-label {
+      color: #b89f7a;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .tutorial-demo .demo-dots {
+      display: flex;
+      gap: 3px;
+    }
+    .tutorial-demo .demo-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #1a130e;
+      border: 2px solid #4d3826;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7px;
+      color: #3d3025;
+      font-weight: bold;
+    }
+    .tutorial-demo .demo-dot.active {
+      border-color: #dbb07c;
+      background: #2a1f18;
+    }
+    .tutorial-demo .demo-dot .demo-bolt {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #eac78a, #ac7c3a);
+      border: 1px solid #7a5a2a;
+    }
+    .tutorial-demo .demo-dot .demo-bolt.green {
+      background: radial-gradient(circle at 35% 30%, #7ada4a, #3a8a1a);
+      border-color: #2a6a0a;
+      animation: pulse-solved 1.2s ease-in-out infinite;
+    }
+    .tutorial-demo .demo-arrow {
+      color: #6a5a4a;
+      font-size: 16px;
+    }
+    .tutorial-legend {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .tutorial-legend .leg-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #7a6550;
+      background: #1a130e;
+      padding: 2px 10px;
+      border-radius: 30px;
+      border: 1px solid #3d2a1a;
+    }
+    .tutorial-legend .leg-item .color-box {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid #3d2a1a;
+    }
+    .tutorial-legend .leg-item .color-box.gold { background: radial-gradient(circle at 35% 30%, #eac78a, #ac7c3a); }
+    .tutorial-legend .leg-item .color-box.green { background: radial-gradient(circle at 35% 30%, #7ada4a, #3a8a1a); }
+    .tutorial-legend .leg-item .color-box.dark { background: #1a130e; border-color: #4d3826; }
+    
+    @media (max-width: 1200px) {
+      .container { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 1024px) {
+      .container { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .container { padding: 10px; }
+      .pin-body { gap: 2px; }
+      .pin-hole { width: 22px; height: 22px; }
+      .pin-bolt { width: 16px; height: 16px; }
+      .editor-field label { width: 60px; }
+      .lock-pin { transform: rotateX(2deg) rotateY(-1deg); }
+      .tutorial-demo .demo-dot { width: 14px; height: 14px; }
+      .tutorial-demo .demo-dot .demo-bolt { width: 8px; height: 8px; }
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1a130e; }
+    ::-webkit-scrollbar-thumb { background: #4d3826; border-radius: 10px; border: 1px solid #2f221a; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- KOLUMNA 1 -->
-        <div>
-            <div class="panel">
-                <div class="panel-title" data-i18n="my_locks">MOJE ZAMKI</div>
-                <ul class="lock-list" id="lockList">
-                    <li class="empty-message" data-i18n="no_locks">Brak zamków – kliknij "➕ Nowy"</li>
-                </ul>
-                <button class="btn-add" onclick="addNewLock()" data-i18n="add_new">➕ Nowy</button>
-                <button class="btn-delete" onclick="deleteCurrentLock()" data-i18n="delete">🗑 Usuń wybrany</button>
-                <button class="btn-export" onclick="exportLocks()" data-i18n="export">💾 Eksportuj zamki</button>
-                <button class="btn-import" onclick="importLocks()" data-i18n="import">📂 Importuj zamki</button>
-            </div>
-        </div>
+<div class="container">
 
-        <!-- KOLUMNA 2 -->
-        <div>
-            <div class="panel">
-                <div class="panel-title" data-i18n="editor_title">EDYTOR ZAMKA</div>
-                <div class="editor-field">
-                    <label data-i18n="name">Nazwa:</label>
-                    <input type="text" id="lockName" placeholder="Wpisz nazwę zamka" disabled data-i18n-placeholder="name_placeholder" />
-                </div>
-                <div class="editor-field">
-                    <label data-i18n="description">Opis:</label>
-                    <input type="text" id="lockDesc" placeholder="Wpisz opis zamka" disabled data-i18n-placeholder="description_placeholder" />
-                </div>
-                <div class="editor-field">
-                    <label data-i18n="pin_count">Ilość zapadek:</label>
-                    <select id="pinCount" disabled>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                    </select>
-                </div>
-                <div style="margin-top:15px;">
-                    <div style="color:#b8a87a; font-weight:bold; margin-bottom:10px;" data-i18n="rules">Reguły</div>
-                    <div class="rules-list" id="rulesList">
-                        <div class="no-rules" data-i18n="no_rules">Brak reguł</div>
-                    </div>
-                    <button class="btn-add-rule" onclick="addRule()" disabled data-i18n="add_rule">+ Dodaj regułę</button>
-                </div>
+  <!-- KOLUMNA 1 -->
+  <div>
+    <div class="panel">
+      <div class="panel-title"><span data-i18n="my_locks">🗝️ MOJE ZAMKI</span> <span class="badge"><i id="lockCountBadge">0</i></span></div>
+      <ul class="lock-list" id="lockList">
+        <li class="empty-message" data-i18n="no_locks">Brak zamków – kliknij "➕ Nowy"</li>
+      </ul>
+      <button class="btn btn-add" onclick="addNewLock()" data-i18n="add_new">➕ Nowy</button>
+      <button class="btn btn-delete" onclick="deleteCurrentLock()" data-i18n="delete">🗑 Usuń wybrany</button>
+      <button class="btn btn-export" onclick="exportLocks()" data-i18n="export">💾 Eksportuj</button>
+      <button class="btn btn-import" onclick="importLocks()" data-i18n="import">📂 Importuj</button>
+    </div>
+  </div>
 
-                <!-- LEGENDA Z NOWĄ SEKCJĄ O BLOKADZIE -->
-                <div class="legend-box" style="background: #1a1a1a; border: 1px solid #4a3a2a; border-radius: 6px; padding: 12px; margin-top: 10px;">
-                    <div style="color: #b8a87a; font-weight: bold; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #4a3a2a; padding-bottom: 8px;">
-                        📖 <span data-i18n="legend_title">Co oznaczają symbole?</span>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
-                        <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px; background: #2a2a2a; border-radius: 4px;">
-                            <span style="font-weight: bold; font-size: 18px; color: #8a8; min-width: 30px; text-align: center;">+</span>
-                            <span style="color: #c8c8c8;">
-                                <strong style="color: #8a8;" data-i18n="legend_same">ten sam kierunek</strong>
-                                <span data-i18n="legend_same_desc"> – zapadka przesuwa się w tę samą stronę</span>
-                            </span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px; background: #2a2a2a; border-radius: 4px;">
-                            <span style="font-weight: bold; font-size: 18px; color: #a88; min-width: 30px; text-align: center;">−</span>
-                            <span style="color: #c8c8c8;">
-                                <strong style="color: #a88;" data-i18n="legend_opposite">przeciwny kierunek</strong>
-                                <span data-i18n="legend_opposite_desc"> – zapadka przesuwa się w przeciwną stronę</span>
-                            </span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px; background: #2a2a2a; border-radius: 4px; border-left: 3px solid #6a6a6a;">
-                            <span style="font-weight: bold; font-size: 18px; color: #6a6a6a; min-width: 30px; text-align: center;">⦿</span>
-                            <span style="color: #c8c8c8;">
-                                <strong style="color: #b8a87a;" data-i18n="legend_no_rule">BRAK REGUŁY</strong>
-                                <span data-i18n="legend_no_rule_desc"> – zapadka porusza się TYLKO sama (nie wpływa na inne)</span>
-                            </span>
-                        </div>
-                        <!-- NOWA SEKCJA: BLOKADA ZAPADEK -->
-                        <div style="display: flex; align-items: center; gap: 10px; padding: 4px 8px; background: #1a1a1a; border-radius: 4px; border-left: 3px solid #ff8844; margin-top: 4px;">
-                            <span style="font-weight: bold; font-size: 18px; color: #ff8844; min-width: 30px; text-align: center;">🔒</span>
-                            <span style="color: #c8c8c8;">
-                                <strong style="color: #ff8844;" data-i18n="legend_lock_info">BLOKADA ZAPADEK</strong>
-                                <span data-i18n="legend_lock_info_desc"> – po znalezieniu rozwiązania zapadki są blokowane, aby nie zniszczyć sekwencji. Zmień reguły lub nazwę zamka aby odblokować.</span>
-                            </span>
-                        </div>
-                    </div>
-                    <div style="margin-top: 10px; padding: 8px; background: #1a1a1a; border: 1px dashed #4a3a2a; border-radius: 4px; font-size: 12px; color: #8a8a8a; text-align: center;">
-                        💡 <strong data-i18n="legend_important">Ważne:</strong>
-                        <span data-i18n="legend_important_desc">Jeśli nie chcesz, aby zapadka wpływała na inne – nie dodawaj dla niej reguły.</span>
-                    </div>
-                </div>
+  <!-- KOLUMNA 2 -->
+  <div>
+    <div class="panel">
+      <div class="panel-title"><span data-i18n="editor_title">⚙️ EDYTOR ZAMKA</span></div>
+      <div class="editor-field">
+        <label data-i18n="name">Nazwa:</label>
+        <input type="text" id="lockName" placeholder="np. Zamek Królewski" disabled data-i18n-placeholder="name_placeholder" />
+      </div>
+      <div class="editor-field">
+        <label data-i18n="description">Opis:</label>
+        <input type="text" id="lockDesc" placeholder="opis..." disabled data-i18n-placeholder="description_placeholder" />
+      </div>
+      <div class="editor-field">
+        <label data-i18n="pin_count">Zapadki:</label>
+        <select id="pinCount" disabled>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+      <div style="margin-top:12px;">
+        <div style="color:#cfb694; font-weight:bold; margin-bottom:6px;" data-i18n="rules">📜 Reguły</div>
+        <div class="rules-list" id="rulesList"><div class="no-rules" data-i18n="no_rules">Brak reguł</div></div>
+        <button class="btn btn-add-rule" onclick="addRule()" disabled data-i18n="add_rule">+ Dodaj regułę</button>
+      </div>
 
-                <button class="btn-solve" onclick="solveLock()" disabled data-i18n="solve">🔓 Rozwiąż zamek</button>
-                <div class="status" id="statusMessage" data-i18n="status">Stan: Dodaj nowy zamek aby rozpocząć</div>
-            </div>
+      <div class="legend-box">
+        <div>📖 <span data-i18n="legend_title">Co oznaczają symbole?</span></div>
+        <div class="legend-row"><span class="sym" style="color:#8a8;">+</span><span class="desc"><strong style="color:#8a8;" data-i18n="legend_same">ten sam kierunek</strong> <span data-i18n="legend_same_desc">– zapadka przesuwa się w tę samą stronę</span></span></div>
+        <div class="legend-row"><span class="sym" style="color:#a88;">−</span><span class="desc"><strong style="color:#a88;" data-i18n="legend_opposite">przeciwny kierunek</strong> <span data-i18n="legend_opposite_desc">– zapadka przesuwa się w przeciwną stronę</span></span></div>
+        <div class="legend-row" style="border-left-color:#6a6a6a;"><span class="sym" style="color:#6a6a6a;">⦿</span><span class="desc"><strong style="color:#b89f7a;" data-i18n="legend_no_rule">BRAK REGUŁY</strong> <span data-i18n="legend_no_rule_desc">– zapadka porusza się TYLKO sama</span></span></div>
+        <div class="legend-row" style="border-left-color:#b86a3a; background:#1f1510;"><span class="sym" style="color:#b86a3a;">🔒</span><span class="desc"><strong style="color:#b86a3a;" data-i18n="legend_lock_info">BLOKADA ZAPADEK</strong> <span data-i18n="legend_lock_info_desc">– po rozwiązaniu zapadki blokują się</span></span></div>
+        <div class="legend-important">💡 <strong data-i18n="legend_important">Ważne:</strong> <span data-i18n="legend_important_desc">Jeśli nie chcesz, aby zapadka wpływała na inne – nie dodawaj dla niej reguły.</span></div>
+      </div>
 
-            <div class="panel">
-                <div class="panel-title" data-i18n="stats_title">Statystyki</div>
-                <div class="stats" id="stats">
-                    <span data-i18n="stats_moves">• Najkrótsza liczba ruchów: ---</span>
-                    <span data-i18n="stats_rules">• Liczba reguł: 0</span>
-                    <span data-i18n="stats_pins">• Liczba zapadek: ---</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- KOLUMNA 3 -->
-        <div>
-            <div class="panel">
-                <div class="panel-title" data-i18n="visualization_title">1. Stan zamka</div>
-                <div class="lock-visualization" id="lockVisualization">
-                    <div class="empty-message" data-i18n="visualization_empty">Dodaj zamek aby rozpocząć</div>
-                </div>
-                <div class="pin-hint" id="pinHint" data-i18n="visualization_hint">💡 Kliknij na otwór aby ustawić bołec</div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-title" data-i18n="solution_title">Rozwiązanie</div>
-                <div class="solution-list" id="solutionList">
-                    <div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_empty">
-                        Dodaj zamek i kliknij "Rozwiąż zamek"
-                    </div>
-                </div>
-                <div class="simulation-controls">
-                    <button onclick="goToFirstStep()" id="btnFirst" disabled data-i18n="sim_first">⏮ Pierwszy</button>
-                    <button onclick="goToPrevStep()" id="btnPrev" disabled data-i18n="sim_prev">◀ Poprzedni</button>
-                    <button onclick="togglePlay()" id="btnPlay" class="btn-play" disabled data-i18n="sim_play">▶ Odtwarzaj</button>
-                    <button onclick="goToNextStep()" id="btnNext" disabled data-i18n="sim_next">Następny ▶</button>
-                    <button onclick="goToLastStep()" id="btnLast" disabled data-i18n="sim_last">Ostatni ⏭</button>
-                    <div class="speed-control">
-                        <span data-i18n="sim_speed">Prędkość:</span>
-                        <input type="range" min="1" max="10" value="5" id="speedSlider" />
-                        <span id="speedLabel">1.0x</span>
-                    </div>
-                    <span class="step-info" id="stepInfo" data-i18n="sim_step">Krok: 0/0</span>
-                </div>
-            </div>
-
-            <!-- PRZYCISKI JĘZYKA -->
-            <div class="language-selector" style="display: flex; justify-content: center; gap: 10px; padding: 10px 0; flex-wrap: wrap; border-bottom: 1px solid #4a3a2a; margin-bottom: 10px;">
-                <button onclick="setLanguage('pl')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇵🇱 Polski</button>
-                <button onclick="setLanguage('en')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇬🇧 English</button>
-                <button onclick="setLanguage('de')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇩🇪 Deutsch</button>
-                <button onclick="setLanguage('ru')" class="lang-btn" style="background: #2a2a2a; color: #c8c8c8; border: 1px solid #4a3a2a; border-radius: 4px; padding: 5px 15px; cursor: pointer; font-size: 14px;">🇷🇺 Русский</button>
-            </div>
-
-            <!-- STOPKA -->
-            <div class="footer">
-                <div style="margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 8px; border: 1px solid #4CAF50;">
-                    <a href="https://github.com/kesajxiii/Gothic-Lock-Studio/releases/download/v1.0.0/GothicLockStudio_Setup.exe" 
-                       style="color: #4CAF50; font-weight: bold; text-decoration: none; font-size: 1.1em;">
-                        ⬇️ Pobierz GothicLockStudio (Instalator)
-                    </a>
-                    <br>
-                    <span style="color: #888; font-size: 0.8em;">Wersja 1.0.0 | Windows 10/11</span>
-                </div>
-                
-                <div>
-                    🛡️ <strong data-i18n="footer">Gothic Lock Studio</strong> — <span data-i18n="footer_author">stworzone przez kesajXIII (kesaj13@tlen.pl)</span> | <span data-i18n="footer_rights">Wszelkie prawa zastrzeżone</span> &copy; 2026
-                </div>
-                
-                <a href="https://github.com/kesajXIII/Gothic-Lock-Studio/releases" target="_blank">
-                    <img src="https://img.shields.io/github/downloads/kesajXIII/Gothic-Lock-Studio/total?style=for-the-badge&label=Pobrania&color=blue" 
-                         alt="Liczba pobrań" />
-                </a>
-            </div>
-
-            <!-- LICZNIK ODWIEDZIN -->
-            <div style="text-align: center; padding: 8px 0; color: #6a6a6a; font-size: 13px; border-top: 1px solid #4a3a2a; margin-top: 5px;">
-                👀 <span id="visitorCount">Ładowanie...</span>
-            </div>
-        </div>
+      <button class="btn btn-solve" onclick="solveLock()" disabled data-i18n="solve">🔓 Rozwiąż zamek</button>
+      <div class="status" id="statusMessage" data-i18n="status">Stan: Dodaj nowy zamek aby rozpocząć</div>
     </div>
 
-    <script>
-        // ============================================================
-        // MODEL ZAMKA
-        // ============================================================
-        class LockData {
-            constructor(name, description, pinCount, initialPins, rules) {
-                this.name = name || "Nowy zamek";
-                this.description = description || "";
-                this.pinCount = pinCount || 3;
-                this.targetValue = 4;
-                this.initialPins = initialPins || [];
-                this.rules = rules || [];
-                this.solution = [];
-            }
-        }
+    <div class="panel">
+      <div class="panel-title"><span data-i18n="stats_title">📊 Statystyki</span></div>
+      <div class="stats" id="stats">
+        <span data-i18n="stats_moves">• Najkrótsza liczba ruchów: ---</span>
+        <span data-i18n="stats_rules">• Liczba reguł: 0</span>
+        <span data-i18n="stats_pins">• Liczba zapadek: ---</span>
+      </div>
+    </div>
+  </div>
 
-        class Rule {
-            constructor(fromPin, toPin, direction) {
-                this.fromPin = fromPin;
-                this.toPin = toPin;
-                this.direction = direction;
-            }
-        }
+  <!-- KOLUMNA 3 -->
+  <div>
+    <div class="panel">
+      <div class="panel-title"><span data-i18n="visualization_title">▣▣▣ 1. Stan zamka</span></div>
+      <div class="lock-visualization" id="lockVisualization">
+        <div class="empty-message" data-i18n="visualization_empty">Dodaj zamek aby rozpocząć</div>
+      </div>
+      <div class="pin-hint" id="pinHint" data-i18n="visualization_hint">💡 Kliknij na otwór aby ustawić bołec</div>
+    </div>
 
-        // ============================================================
-        // SOLVER
-        // ============================================================
-        class LockSolver {
-            solve(lockData) {
-                const pinCount = lockData.pinCount;
-                const target = lockData.targetValue;
-                const initialPins = [...lockData.initialPins];
-                const rules = lockData.rules;
+    <div class="panel">
+      <div class="panel-title"><span data-i18n="solution_title">🔓 Rozwiązanie</span></div>
+      <div class="solution-list" id="solutionList">
+        <div style="color:#6f5d4a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_empty">
+          Dodaj zamek i kliknij "Rozwiąż zamek"
+        </div>
+      </div>
+      <div class="simulation-controls">
+        <button onclick="goToFirstStep()" id="btnFirst" disabled data-i18n="sim_first">⏮</button>
+        <button onclick="goToPrevStep()" id="btnPrev" disabled data-i18n="sim_prev">◀</button>
+        <button onclick="togglePlay()" id="btnPlay" class="btn-play" disabled data-i18n="sim_play">▶ Odtwarzaj</button>
+        <button onclick="goToNextStep()" id="btnNext" disabled data-i18n="sim_next">▶</button>
+        <button onclick="goToLastStep()" id="btnLast" disabled data-i18n="sim_last">⏭</button>
+        <div class="speed-control">
+          <span data-i18n="sim_speed">Prędkość:</span>
+          <input type="range" min="1" max="10" value="5" id="speedSlider" />
+          <span id="speedLabel">1.0x</span>
+        </div>
+        <span class="step-info" id="stepInfo" data-i18n="sim_step">Krok: 0/0</span>
+      </div>
+    </div>
 
-                if (!initialPins || initialPins.length === 0 || initialPins.length !== pinCount) return null;
-                for (let i = 0; i < initialPins.length; i++) {
-                    if (initialPins[i] < 1 || initialPins[i] > 7) return null;
-                }
+    <div class="language-selector">
+      <button onclick="setLanguage('pl')" class="lang-btn">🇵🇱 Polski</button>
+      <button onclick="setLanguage('en')" class="lang-btn">🇬🇧 English</button>
+      <button onclick="setLanguage('de')" class="lang-btn">🇩🇪 Deutsch</button>
+      <button onclick="setLanguage('ru')" class="lang-btn">🇷🇺 Русский</button>
+    </div>
 
-                const visited = new Set();
-                const queue = [];
-                queue.push({ state: [...initialPins], steps: [] });
-                visited.add(stateToString(initialPins));
-                const maxSteps = 50;
+    <div class="footer">
+      <div style="margin:6px 0; padding:8px; background:#1f1712; border-radius:30px 4px 30px 4px; border:1px solid #4d3826; width:100%;">
+        <a href="#" style="font-size:1.0em;">⬇️ Pobierz GothicLockStudio</a><br>
+        <span style="color:#6f5d4a; font-size:0.7em;">Wersja 1.0.0 | Windows 10/11</span>
+      </div>
+      <div>
+        🛡️ <strong data-i18n="footer">Gothic Lock Studio</strong> — <span data-i18n="footer_author">kesajXIII</span> | <span data-i18n="footer_rights">All rights reserved</span> © 2026
+      </div>
+      <div style="margin-top:4px;">👀 <span id="visitorCount">Ładowanie...</span></div>
+    </div>
+  </div>
 
-                while (queue.length > 0) {
-                    const { state, steps } = queue.shift();
-                    if (steps.length > maxSteps) continue;
-                    if (allAtTarget(state, target)) return steps;
+  <!-- === NOWA KOLUMNA 4 - JAK TO DZIAŁA (TUTORIAL) === -->
+  <div>
+    <div class="tutorial-panel">
+      <div class="tutorial-title" data-i18n="tutorial_title">📖 JAK TO DZIAŁA</div>
+      
+      <!-- Krok 1 -->
+      <div class="tutorial-step">
+        <div class="num">1.</div>
+        <div class="content">
+          <div class="title" data-i18n="tutorial_step1_title">🎯 Cel: wszystkie bolce na pozycji 4</div>
+          <div class="desc" data-i18n="tutorial_step1_desc">Przesuń każdą zapadkę tak, aby <strong>złoty bolec</strong> znalazł się w <strong>środkowym otworze (4)</strong>.</div>
+        </div>
+      </div>
+      
+      <!-- Krok 2 -->
+      <div class="tutorial-step">
+        <div class="num">2.</div>
+        <div class="content">
+          <div class="title" data-i18n="tutorial_step2_title">🖱️ Jak ustawić stan początkowy zapadek</div>
+          <div class="desc" data-i18n="tutorial_step2_desc">Kliknij na <strong>dowolny otwór</strong> (1-7) na wybranej zapadce, aby ustawić bolec na tej pozycji. To określa początkowy układ zamka.</div>
+        </div>
+      </div>
+      
+      <!-- Krok 3 - Demo wizualne -->
+      <div class="tutorial-step" style="border-left-color:#b89f7a;">
+        <div class="num">3.</div>
+        <div class="content">
+          <div class="title" data-i18n="tutorial_step3_title">🎨 Wizualne wskazówki</div>
+          <div class="desc">
+            <div class="tutorial-legend">
+              <span class="leg-item"><span class="color-box gold"></span> <span data-i18n="tutorial_legend_gold">Bolec na pozycji 1-3 lub 5-7</span></span>
+              <span class="leg-item"><span class="color-box green"></span> <span data-i18n="tutorial_legend_green">Bolec na pozycji 4 ✅</span></span>
+              <span class="leg-item"><span class="color-box dark"></span> <span data-i18n="tutorial_legend_dark">Pusty otwór</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Krok 4 -->
+      <div class="tutorial-step">
+        <div class="num">4.</div>
+        <div class="content">
+          <div class="title" data-i18n="tutorial_step4_title">🔗 Reguły (+ i -)</div>
+          <div class="desc" data-i18n="tutorial_step4_desc">
+            <code>+</code> = przesuwa powiązaną zapadkę w <strong>tę samą</strong> stronę<br>
+            <code>-</code> = przesuwa powiązaną zapadkę w <strong>przeciwną</strong> stronę
+          </div>
+        </div>
+      </div>
+      
+      <!-- Krok 5 -->
+      <div class="tutorial-step">
+        <div class="num">5.</div>
+        <div class="content">
+          <div class="title" data-i18n="tutorial_step5_title">🔓 Rozwiązanie</div>
+          <div class="desc" data-i18n="tutorial_step5_desc">Kliknij <strong>"Rozwiąż zamek"</strong> aby znaleźć optymalną sekwencję ruchów. Użyj przycisków <strong>▶ Odtwarzaj</strong> aby zobaczyć krok po kroku.</div>
+        </div>
+      </div>
+      
+      <!-- Krok 6 - Mini symulator -->
+      <div class="tutorial-step" style="border-left-color:#6aaa4a;">
+        <div class="num">6.</div>
+        <div class="content">
+          <div class="title" data-i18n="tutorial_step6_title">⚡ Przykład: przesuwanie zapadki</div>
+          <div class="desc">
+            <div class="tutorial-demo">
+              <div class="demo-pin">
+                <span class="demo-label">1</span>
+                <div class="demo-dots">
+                  <div class="demo-dot">1</div>
+                  <div class="demo-dot active"><div class="demo-bolt"></div></div>
+                  <div class="demo-dot">3</div>
+                  <div class="demo-dot">4</div>
+                  <div class="demo-dot">5</div>
+                  <div class="demo-dot">6</div>
+                  <div class="demo-dot">7</div>
+                </div>
+                <span style="color:#6a5a4a; font-size:10px;">→</span>
+              </div>
+              <span class="demo-arrow">👉</span>
+              <div class="demo-pin" style="border-color:#4a8a3a;">
+                <span class="demo-label" style="color:#6aaa4a;">1</span>
+                <div class="demo-dots">
+                  <div class="demo-dot">1</div>
+                  <div class="demo-dot">2</div>
+                  <div class="demo-dot">3</div>
+                  <div class="demo-dot active"><div class="demo-bolt green"></div></div>
+                  <div class="demo-dot">5</div>
+                  <div class="demo-dot">6</div>
+                  <div class="demo-dot">7</div>
+                </div>
+                <span style="color:#6aaa4a; font-size:10px;">✅</span>
+              </div>
+            </div>
+            <div style="text-align:center; font-size:11px; color:#6a5a4a; margin-top:4px;" data-i18n="tutorial_demo_hint">
+              Kliknij na otwór 4 → bolec zmienia kolor na <span style="color:#6aaa4a;">ZIELONY</span>!
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                    for (let pin = 1; pin <= pinCount; pin++) {
-                        for (const direction of [1, -1]) {
-                            const pinRules = rules.filter(r => r.fromPin === pin);
-                            let canMove = true;
-                            const selfNewValue = state[pin - 1] + direction;
-                            if (selfNewValue < 1 || selfNewValue > 7) canMove = false;
+</div>
 
-                            if (canMove) {
-                                for (const rule of pinRules) {
-                                    const toPin = rule.toPin - 1;
-                                    if (toPin < 0 || toPin >= pinCount) { canMove = false; break; }
-                                    const newValue = state[toPin] + direction * rule.direction;
-                                    if (newValue < 1 || newValue > 7) { canMove = false; break; }
-                                }
-                            }
-                            if (!canMove) continue;
+<script>
+  // ===================== MODEL =====================
+  class LockData {
+    constructor(name, description, pinCount, initialPins, rules) {
+      this.name = name || "Nowy zamek";
+      this.description = description || "";
+      this.pinCount = pinCount || 3;
+      this.targetValue = 4;
+      this.initialPins = initialPins || [];
+      this.rules = rules || [];
+      this.solution = [];
+      this.isSolved = false;
+    }
+  }
+  class Rule {
+    constructor(fromPin, toPin, direction) {
+      this.fromPin = fromPin;
+      this.toPin = toPin;
+      this.direction = direction;
+    }
+  }
 
-                            const newState = [...state];
-                            for (const rule of pinRules) {
-                                const toPin = rule.toPin - 1;
-                                newState[toPin] = newState[toPin] + direction * rule.direction;
-                            }
-                            newState[pin - 1] = newState[pin - 1] + direction;
-
-                            const stepDesc = `Zapadka ${pin} ${direction === 1 ? "→" : "←"}`;
-                            const newSteps = [...steps, stepDesc];
-                            const stateKey = stateToString(newState);
-                            if (!visited.has(stateKey)) {
-                                visited.add(stateKey);
-                                queue.push({ state: newState, steps: newSteps });
-                            }
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-
-        function allAtTarget(state, target) {
-            return state.every(p => p === target);
-        }
-
-        function stateToString(state) {
-            return state.join(",");
-        }
-
-        // ============================================================
-        // APLIKACJA
-        // ============================================================
-        let locks = [];
-        let currentLockIndex = -1;
-        let selectedPin = -1;
-        let highlightedPin = -1;
-        let currentPins = [];
-        let solutionSteps = [];
-        let currentStepIndex = -1;
-        let isPlaying = false;
-        let playInterval = null;
-        let speed = 800;
-        let isLockSolved = false;
-
-        const solver = new LockSolver();
-
-        // ============================================================
-        // ZAPIS / ODCZYT ZAMKÓW (localStorage)
-        // ============================================================
-
-        const STORAGE_KEY = 'gothicLockStudio_locks';
-
-        function saveLocksToStorage() {
-            try {
-                const data = locks.map(lock => ({
-                    name: lock.name,
-                    description: lock.description,
-                    pinCount: lock.pinCount,
-                    initialPins: lock.initialPins,
-                    rules: lock.rules.map(r => ({
-                        fromPin: r.fromPin,
-                        toPin: r.toPin,
-                        direction: r.direction
-                    })),
-                    solution: lock.solution || []
-                }));
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                console.log('✅ Zamki zapisane w localStorage');
-            } catch (e) {
-                console.warn('⚠️ Błąd zapisu zamków:', e);
-            }
-        }
-
-        function loadLocksFromStorage() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (!saved) return false;
-                
-                const data = JSON.parse(saved);
-                if (!data || !data.length) return false;
-                
-                locks = data.map(lockData => {
-                    const lock = new LockData(
-                        lockData.name,
-                        lockData.description || '',
-                        lockData.pinCount || 3,
-                        lockData.initialPins || [],
-                        []
-                    );
-                    if (lockData.rules) {
-                        lock.rules = lockData.rules.map(r => 
-                            new Rule(r.fromPin, r.toPin, r.direction)
-                        );
-                    }
-                    if (lockData.solution) {
-                        lock.solution = lockData.solution;
-                    }
-                    return lock;
-                });
-                
-                console.log(`✅ Wczytano ${locks.length} zamków z localStorage`);
-                return true;
-            } catch (e) {
-                console.warn('⚠️ Błąd odczytu zamków:', e);
-                return false;
-            }
-        }
-
-        function autoSave() {
-            saveLocksToStorage();
-        }
-
-        // ============================================================
-        // EKSPORT / IMPORT ZAMKÓW (JSON)
-        // ============================================================
-
-        function exportLocks() {
-            if (locks.length === 0) {
-                const lang = currentLanguage || 'pl';
-                const t = translations[lang];
-                document.getElementById('statusMessage').textContent = t.no_locks_to_export || '❌ Brak zamków do eksportu';
-                return;
-            }
-            const data = JSON.stringify(locks, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `zamki_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            document.getElementById('statusMessage').textContent = t.export_success || '✅ Eksport zakończony';
-        }
-
-        function importLocks() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    try {
-                        const data = JSON.parse(ev.target.result);
-                        if (!Array.isArray(data) || data.length === 0) {
-                            throw new Error('Nieprawidłowy format');
-                        }
-                        locks = data.map(lockData => {
-                            const lock = new LockData(
-                                lockData.name,
-                                lockData.description || '',
-                                lockData.pinCount || 3,
-                                lockData.initialPins || [],
-                                []
-                            );
-                            if (lockData.rules) {
-                                lock.rules = lockData.rules.map(r => 
-                                    new Rule(r.fromPin, r.toPin, r.direction)
-                                );
-                            }
-                            if (lockData.solution) {
-                                lock.solution = lockData.solution;
-                            }
-                            return lock;
-                        });
-                        autoSave();
-                        if (locks.length > 0) {
-                            loadLock(0);
-                        } else {
-                            currentLockIndex = -1;
-                            enableControls(false);
-                            renderLockList();
-                            renderLockVisualization();
-                            renderRules();
-                            renderSolution();
-                            updateStats();
-                            updateSimulationControls(false);
-                            updateStepInfo();
-                        }
-                        const lang = currentLanguage || 'pl';
-                        const t = translations[lang];
-                        document.getElementById('statusMessage').textContent = 
-                            (t.import_success || '✅ Zaimportowano') + ` ${locks.length} ` + (t.locks || 'zamków');
-                    } catch (err) {
-                        const lang = currentLanguage || 'pl';
-                        const t = translations[lang];
-                        document.getElementById('statusMessage').textContent = t.import_error || '❌ Błąd importu: nieprawidłowy plik';
-                        console.error(err);
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        }
-
-        // ============================================================
-        // RENDEROWANIE
-        // ============================================================
-        function renderLockList() {
-            const list = document.getElementById('lockList');
-            list.innerHTML = '';
-            if (locks.length === 0) {
-                list.innerHTML = '<li class="empty-message" data-i18n="no_locks">Brak zamków – kliknij "➕ Nowy"</li>';
-                return;
-            }
-            locks.forEach((lock, index) => {
-                const li = document.createElement('li');
-                li.className = index === currentLockIndex ? 'active' : '';
-                li.dataset.index = index;
-                li.innerHTML = `${lock.name} <span class="badge">${lock.pinCount} zapadek</span>`;
-                li.onclick = () => loadLock(index);
-                list.appendChild(li);
-            });
-        }
-
-        function renderLockVisualization() {
-            const container = document.getElementById('lockVisualization');
-            const hint = document.getElementById('pinHint');
-            container.innerHTML = '';
-            
-            if (currentLockIndex < 0 || currentLockIndex >= locks.length) {
-                container.innerHTML = '<div class="empty-message" data-i18n="visualization_empty">Wybierz lub dodaj zamek</div>';
-                container.className = 'lock-visualization';
-                if (hint) {
-                    hint.className = 'pin-hint';
-                    const lang = currentLanguage || 'pl';
-                    const t = translations[lang];
-                    hint.textContent = t.visualization_hint || '💡 Kliknij na otwór aby ustawić bołec';
-                }
-                return;
-            }
-            
-            const lock = locks[currentLockIndex];
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            const positionLabel = t.position_label || 'Pozycja:';
-            
-            if (isLockSolved) {
-                container.className = 'lock-visualization locked';
-                if (hint) {
-                    hint.className = 'pin-hint locked';
-                    hint.textContent = t.visualization_locked || '🔒 Zamek rozwiązany – zapadki zablokowane';
-                }
-            } else {
-                container.className = 'lock-visualization';
-                if (hint) {
-                    hint.className = 'pin-hint';
-                    hint.textContent = t.visualization_hint || '💡 Kliknij na otwór aby ustawić bołec';
-                }
-            }
-            
-            for (let i = 0; i < lock.pinCount; i++) {
-                const value = currentPins[i] || 4;
-                const pinDiv = document.createElement('div');
-                pinDiv.className = `lock-pin ${i === selectedPin ? 'selected' : ''} ${i === highlightedPin ? 'highlighted' : ''} ${isLockSolved ? 'locked' : ''}`;
-                pinDiv.onclick = () => onPinClick(i);
-
-                const label = document.createElement('div');
-                label.className = 'pin-label';
-                label.textContent = i + 1;
-                pinDiv.appendChild(label);
-
-                const body = document.createElement('div');
-                body.className = 'pin-body';
-                for (let hole = 0; hole < 7; hole++) {
-                    const hasPin = (hole + 1 === value);
-                    const holeDiv = document.createElement('div');
-                    holeDiv.className = `pin-hole ${hasPin ? 'has-pin' : ''}`;
-                    holeDiv.onclick = (e) => {
-                        e.stopPropagation();
-                        onHoleClick(i, hole);
-                    };
-                    if (hasPin) {
-                        const bolt = document.createElement('div');
-                        bolt.className = 'pin-bolt';
-                        holeDiv.appendChild(bolt);
-                    }
-                    body.appendChild(holeDiv);
-                }
-                pinDiv.appendChild(body);
-
-                const position = document.createElement('div');
-                position.className = 'pin-position';
-                position.textContent = `${positionLabel} ${value}/7`;
-                pinDiv.appendChild(position);
-
-                container.appendChild(pinDiv);
-            }
-            updateStats();
-        }
-
-        function renderRules() {
-            const container = document.getElementById('rulesList');
-            const lock = locks[currentLockIndex];
-            if (!lock) {
-                container.innerHTML = '<div class="no-rules" data-i18n="no_rules">Brak reguł</div>';
-                return;
-            }
-            container.innerHTML = '';
-            if (lock.rules.length === 0) {
-                container.innerHTML = '<div class="no-rules" data-i18n="no_rules">Brak reguł</div>';
-                return;
-            }
-            lock.rules.forEach((rule, index) => {
-                const row = document.createElement('div');
-                row.className = 'rule-row';
-                const num = document.createElement('span');
-                num.className = 'rule-number';
-                num.textContent = `${index + 1}.`;
-                row.appendChild(num);
-
-                const fromInput = document.createElement('input');
-                fromInput.type = 'number';
-                fromInput.min = 1;
-                fromInput.max = lock.pinCount;
-                fromInput.value = rule.fromPin;
-                fromInput.onchange = () => updateRule(index, 0, parseInt(fromInput.value));
-                row.appendChild(fromInput);
-
-                const arrow = document.createElement('span');
-                arrow.textContent = '→';
-                row.appendChild(arrow);
-
-                const toInput = document.createElement('input');
-                toInput.type = 'number';
-                toInput.min = 1;
-                toInput.max = lock.pinCount;
-                toInput.value = rule.toPin;
-                toInput.onchange = () => updateRule(index, 1, parseInt(toInput.value));
-                row.appendChild(toInput);
-
-                const dirSelect = document.createElement('select');
-                const plusOpt = document.createElement('option');
-                plusOpt.value = '1';
-                plusOpt.textContent = '+';
-                const minusOpt = document.createElement('option');
-                minusOpt.value = '-1';
-                minusOpt.textContent = '-';
-                dirSelect.appendChild(plusOpt);
-                dirSelect.appendChild(minusOpt);
-                dirSelect.value = rule.direction;
-                dirSelect.onchange = () => updateRule(index, 2, parseInt(dirSelect.value));
-                row.appendChild(dirSelect);
-
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'btn-remove';
-                removeBtn.textContent = '✕';
-                removeBtn.onclick = () => removeRule(index);
-                row.appendChild(removeBtn);
-                container.appendChild(row);
-            });
-        }
-
-        function renderSolution() {
-            const container = document.getElementById('solutionList');
-            const lock = locks[currentLockIndex];
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            
-            if (!lock) {
-                container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_empty">${t.solution_empty || 'Dodaj zamek i kliknij "Rozwiąż zamek"'}</div>`;
-                updateSimulationControls(false);
-                return;
-            }
-            
-            if (!lock.solution || lock.solution.length === 0) {
-                container.innerHTML = `<div style="color:#6a6a6a; font-style:italic; padding:10px; text-align:center;" data-i18n="solution_click">${t.solution_click || 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie'}</div>`;
-                updateSimulationControls(false);
-                return;
-            }
-            
-            container.innerHTML = '';
-            lock.solution.forEach((step, index) => {
-                const div = document.createElement('div');
-                div.className = `solution-step ${index === currentStepIndex ? 'active' : ''} ${index < currentStepIndex ? 'done' : ''}`;
-                const stepText = translateStep(step, lang);
-                div.textContent = `${index + 1}. ${stepText}`;
-                div.onclick = () => goToStep(index);
-                container.appendChild(div);
-            });
-            
-            solutionSteps = lock.solution;
-            updateSimulationControls(true);
-            updateStepInfo();
-        }
-
-        function updateStats() {
-            const lock = locks[currentLockIndex];
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            
-            if (!lock) {
-                document.getElementById('stats').innerHTML = `
-                    <span>${t.stats_moves || '• Najkrótsza liczba ruchów: ---'}</span>
-                    <span>${t.stats_rules || '• Liczba reguł: 0'}</span>
-                    <span>${t.stats_pins || '• Liczba zapadek: ---'}</span>
-                `;
-                return;
-            }
-            const solutionCount = lock.solution ? lock.solution.length : 0;
-            const movesText = t.stats_moves || '• Najkrótsza liczba ruchów:';
-            const rulesText = t.stats_rules || '• Liczba reguł:';
-            const pinsText = t.stats_pins || '• Liczba zapadek:';
-            
-            document.getElementById('stats').innerHTML = `
-                <span>${movesText} ${solutionCount > 0 ? solutionCount : '---'}</span>
-                <span>${rulesText} ${lock.rules.length}</span>
-                <span>${pinsText} ${lock.pinCount}</span>
-            `;
-        }
-
-        // ============================================================
-        // KONTROLKI SYMULACJI
-        // ============================================================
-        function updateSimulationControls(enabled) {
-            const lock = locks[currentLockIndex];
-            const hasSteps = lock && lock.solution && lock.solution.length > 0;
-            
-            ['btnFirst', 'btnPrev', 'btnNext', 'btnLast'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    btn.disabled = !enabled || !hasSteps;
-                }
-            });
-            
-            const playBtn = document.getElementById('btnPlay');
-            if (playBtn) {
-                if (!enabled || !hasSteps) {
-                    playBtn.disabled = true;
-                } else {
-                    playBtn.disabled = false;
-                    if (!isPlaying) {
-                        const lang = currentLanguage || 'pl';
-                        const t = translations[lang];
-                        playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
-                        playBtn.className = 'btn-play';
-                    }
-                }
-            }
-            
-            if (hasSteps && enabled) {
-                document.getElementById('btnFirst').disabled = currentStepIndex <= 0;
-                document.getElementById('btnPrev').disabled = currentStepIndex <= 0;
-                document.getElementById('btnNext').disabled = currentStepIndex >= solutionSteps.length - 1;
-                document.getElementById('btnLast').disabled = currentStepIndex >= solutionSteps.length - 1;
-            }
-        }
-
-        function updateStepInfo() {
-            const total = solutionSteps ? solutionSteps.length : 0;
-            const current = currentStepIndex >= 0 ? currentStepIndex + 1 : 0;
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            const stepText = t.sim_step || 'Krok:';
-            document.getElementById('stepInfo').textContent = `${stepText} ${current}/${total}`;
-        }
-
-        // ============================================================
-        // NAWIGACJA SYMULACJI
-        // ============================================================
-        function goToStep(index) {
-            if (!solutionSteps || solutionSteps.length === 0) return;
-            if (index < -1) index = -1;
-            if (index >= solutionSteps.length) index = solutionSteps.length - 1;
-            
-            currentStepIndex = index;
-            const lock = locks[currentLockIndex];
-            currentPins = [...lock.initialPins];
-            
-            for (let i = 0; i <= index && i < solutionSteps.length; i++) {
-                applyStepToPins(currentPins, solutionSteps[i]);
-            }
-            
-            if (index >= 0 && index < solutionSteps.length) {
-                highlightedPin = parseInt(solutionSteps[index].split(' ')[1]) - 1;
-            } else {
-                highlightedPin = -1;
-            }
-            
-            renderLockVisualization();
-            renderSolution();
-            updateSimulationControls(true);
-            updateStepInfo();
-            
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            
-            if (index >= 0 && index < solutionSteps.length) {
-                const stepText = translateStep(solutionSteps[index], lang);
-                const stepLabel = t.sim_step_label || 'Krok';
-                document.getElementById('statusMessage').textContent = `${stepLabel} ${index + 1}/${solutionSteps.length}: ${stepText}`;
-            } else {
-                document.getElementById('statusMessage').textContent = t.sim_initial || 'Stan początkowy';
-            }
-        }
-
-        function goToFirstStep() { goToStep(0); }
-        function goToPrevStep() { goToStep(currentStepIndex - 1); }
-        function goToNextStep() { goToStep(currentStepIndex + 1); }
-        function goToLastStep() { goToStep(solutionSteps.length - 1); }
-
-        // ============================================================
-        // ODTWARZANIE
-        // ============================================================
-        function togglePlay() {
-            if (isPlaying) {
-                stopPlayback();
-            } else {
-                startPlayback();
-            }
-        }
-
-        function startPlayback() {
-            if (!solutionSteps || solutionSteps.length === 0) return;
-            if (currentStepIndex >= solutionSteps.length - 1) {
-                goToStep(-1);
-            }
-            isPlaying = true;
-            const playBtn = document.getElementById('btnPlay');
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            playBtn.textContent = t.sim_pause || '⏸ Pauza';
-            playBtn.className = 'btn-play playing';
-            const speedSlider = document.getElementById('speedSlider');
-            const speedValue = parseInt(speedSlider.value);
-            speed = Math.max(200, 1200 - speedValue * 100);
-            setTimeout(() => { if (isPlaying) playNextStep(); }, 300);
-        }
-
-        function playNextStep() {
-            if (!isPlaying) return;
-            if (!solutionSteps || solutionSteps.length === 0) {
-                stopPlayback();
-                return;
-            }
-            if (currentStepIndex >= solutionSteps.length - 1) {
-                stopPlayback();
-                return;
-            }
-            goToStep(currentStepIndex + 1);
-            playInterval = setTimeout(playNextStep, speed);
-        }
-
-        function stopPlayback() {
-            isPlaying = false;
-            if (playInterval) {
-                clearTimeout(playInterval);
-                playInterval = null;
-            }
-            const playBtn = document.getElementById('btnPlay');
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            playBtn.textContent = t.sim_play || '▶ Odtwarzaj';
-            playBtn.className = 'btn-play';
-        }
-
-        // ============================================================
-        // INTERAKCJE
-        // ============================================================
-        function onPinClick(index) {
-            if (isLockSolved) return;
-            selectedPin = selectedPin === index ? -1 : index;
-            renderLockVisualization();
-        }
-
-        function onHoleClick(pinIndex, holeIndex) {
-            if (isLockSolved) {
-                const lang = currentLanguage || 'pl';
-                const t = translations[lang];
-                const status = document.getElementById('statusMessage');
-                status.textContent = t.lock_solved_blocked || '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek. Zmień coś w zamku aby odblokować.';
-                status.className = 'status locked';
-                return;
-            }
-            
-            const lock = locks[currentLockIndex];
-            if (!lock) return;
-            
-            const newValue = holeIndex + 1;
-            if (currentPins[pinIndex] !== newValue) {
-                currentPins[pinIndex] = newValue;
-                lock.initialPins = [...currentPins];
-                lock.solution = [];
-                solutionSteps = [];
-                currentStepIndex = -1;
-                highlightedPin = -1;
-                selectedPin = -1;
-                isLockSolved = false;
-                stopPlayback();
-                renderLockVisualization();
-                renderSolution();
-                const status = document.getElementById('statusMessage');
-                status.textContent = 'Stan zmieniony - kliknij "Rozwiąż zamek"';
-                status.className = 'status';
-                updateStats();
-                updateSimulationControls(false);
-                updateStepInfo();
-                autoSave();
-            }
-        }
-
-        // ============================================================
-        // ZARZĄDZANIE ZAMKAMI
-        // ============================================================
-        function loadLock(index) {
-            if (index < 0 || index >= locks.length) {
-                currentLockIndex = -1;
-                isLockSolved = false;
-                renderLockList();
-                renderLockVisualization();
-                renderRules();
-                renderSolution();
-                updateStats();
-                updateSimulationControls(false);
-                updateStepInfo();
-                document.getElementById('statusMessage').textContent = 'Brak zamków – dodaj nowy';
-                enableControls(false);
-                return;
-            }
-
-            currentLockIndex = index;
-            selectedPin = -1;
-            highlightedPin = -1;
-            currentStepIndex = -1;
-            solutionSteps = [];
-            stopPlayback();
-            
-            const lock = locks[index];
-            isLockSolved = !!(lock.solution && lock.solution.length > 0);
-            
-            document.getElementById('lockName').value = lock.name;
-            document.getElementById('lockDesc').value = lock.description || '';
-            document.getElementById('pinCount').value = lock.pinCount;
-            currentPins = [...lock.initialPins];
-
-            renderLockList();
-            renderLockVisualization();
-            renderRules();
-            renderSolution();
-            updateStats();
-            updateSimulationControls(true);
-            updateStepInfo();
-            
-            enableControls(true);
-            document.getElementById('statusMessage').textContent = `Załadowno: ${lock.name}`;
-            document.getElementById('statusMessage').className = 'status';
-        }
-
-        function enableControls(enabled) {
-            const btnSolve = document.querySelector('.btn-solve');
-            const btnRule = document.querySelector('.btn-add-rule');
-            
-            if (btnSolve) {
-                btnSolve.disabled = !enabled;
-            }
-            if (btnRule) {
-                btnRule.disabled = !enabled;
-            }
-            
-            const lockName = document.getElementById('lockName');
-            const lockDesc = document.getElementById('lockDesc');
-            const pinCount = document.getElementById('pinCount');
-            
-            if (lockName) lockName.disabled = !enabled;
-            if (lockDesc) lockDesc.disabled = !enabled;
-            if (pinCount) pinCount.disabled = !enabled;
-        }
-
-        function addNewLock() {
-            const newLock = new LockData(
-                `Nowy zamek ${locks.length + 1}`,
-                "Nowy zamek do edycji",
-                3,
-                [4, 4, 4], []
-            );
-            locks.push(newLock);
-            isLockSolved = false;
-            loadLock(locks.length - 1);
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            document.getElementById('statusMessage').textContent = t.added_lock || 'Dodano nowy zamek';
-            autoSave();
-        }
-
-        function deleteCurrentLock() {
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-            
-            if (currentLockIndex < 0 || currentLockIndex >= locks.length) {
-                document.getElementById('statusMessage').textContent = t.no_lock_to_delete || 'Nie ma zamka do usunięcia';
-                return;
-            }
-            if (locks.length === 0) {
-                document.getElementById('statusMessage').textContent = t.no_locks_to_delete || 'Brak zamków do usunięcia';
-                return;
-            }
-            const lock = locks[currentLockIndex];
-            if (!confirm(`Czy na pewno usunąć zamek "${lock.name}"?`)) return;
-
-            locks.splice(currentLockIndex, 1);
-            isLockSolved = false;
-            if (locks.length === 0) {
-                currentLockIndex = -1;
-                enableControls(false);
-                document.getElementById('statusMessage').textContent = t.lock_deleted || 'Usunięto zamek. Dodaj nowy.';
-                renderLockList();
-                renderLockVisualization();
-                renderRules();
-                renderSolution();
-                updateStats();
-                updateSimulationControls(false);
-                updateStepInfo();
-                autoSave();
-                return;
-            }
-            if (currentLockIndex >= locks.length) {
-                currentLockIndex = locks.length - 1;
-            }
-            loadLock(currentLockIndex);
-            document.getElementById('statusMessage').textContent = t.lock_deleted || 'Usunięto zamek';
-            autoSave();
-        }
-
-        // ============================================================
-        // REGUŁY
-        // ============================================================
-        function addRule() {
-            const lock = locks[currentLockIndex];
-            if (!lock) return;
-            lock.rules.push(new Rule(1, 2, 1));
-            isLockSolved = false;
-            renderRules();
-            lock.solution = [];
-            solutionSteps = [];
-            currentStepIndex = -1;
-            stopPlayback();
-            renderSolution();
-            updateStats();
-            updateSimulationControls(false);
-            updateStepInfo();
-            document.getElementById('statusMessage').textContent = 'Dodano regułę';
-            document.getElementById('statusMessage').className = 'status';
-            autoSave();
-        }
-
-        function removeRule(index) {
-            const lock = locks[currentLockIndex];
-            if (!lock) return;
-            lock.rules.splice(index, 1);
-            isLockSolved = false;
-            renderRules();
-            lock.solution = [];
-            solutionSteps = [];
-            currentStepIndex = -1;
-            stopPlayback();
-            renderSolution();
-            updateStats();
-            updateSimulationControls(false);
-            updateStepInfo();
-            document.getElementById('statusMessage').textContent = 'Usunięto regułę';
-            document.getElementById('statusMessage').className = 'status';
-            autoSave();
-        }
-
-        function updateRule(index, field, value) {
-            const lock = locks[currentLockIndex];
-            if (!lock) return;
-            if (field === 0) lock.rules[index].fromPin = value;
-            else if (field === 1) lock.rules[index].toPin = value;
-            else if (field === 2) lock.rules[index].direction = value;
-            isLockSolved = false;
-            lock.solution = [];
-            solutionSteps = [];
-            currentStepIndex = -1;
-            stopPlayback();
-            renderSolution();
-            updateStats();
-            updateSimulationControls(false);
-            updateStepInfo();
-            document.getElementById('statusMessage').className = 'status';
-            autoSave();
-        }
-
-        // ============================================================
-        // ROZWIĄZYWANIE
-        // ============================================================
-        function solveLock() {
-            const lock = locks[currentLockIndex];
-            if (!lock) return;
-            
-            if (!lock.initialPins || lock.initialPins.length !== lock.pinCount) {
-                lock.initialPins = [];
-                for (let i = 0; i < lock.pinCount; i++) {
-                    lock.initialPins[i] = 4;
-                }
-                currentPins = [...lock.initialPins];
-                renderLockVisualization();
-                document.getElementById('statusMessage').textContent = 'Ustawiono domyślne pozycje zapadek (4/7)';
-                return;
-            }
-            
-            lock.initialPins = [...currentPins];
-            const solution = solver.solve(lock);
-            const lang = currentLanguage || 'pl';
-            const t = translations[lang];
-
-            if (solution && solution.length > 0) {
-                lock.solution = solution;
-                solutionSteps = solution;
-                currentStepIndex = -1;
-                highlightedPin = -1;
-                stopPlayback();
-                currentPins = [...lock.initialPins];
-                isLockSolved = true;
-                
-                const status = document.getElementById('statusMessage');
-                status.textContent = `${t.solution_found || '✅ Rozwiązanie znalezione!'} ${solution.length} ${t.solution_moves || 'ruchów'}`;
-                status.className = 'status';
-                status.style.color = '#8a8';
-            } else {
-                lock.solution = [];
-                solutionSteps = [];
-                currentStepIndex = -1;
-                isLockSolved = false;
-                const status = document.getElementById('statusMessage');
-                status.textContent = t.solution_not_found || '❌ Nie znaleziono rozwiązania!';
-                status.className = 'status';
-                status.style.color = '#a88';
-            }
-            renderLockVisualization();
-            renderSolution();
-            updateStats();
-            updateSimulationControls(true);
-            updateStepInfo();
-            autoSave();
-        }
-
-        // ============================================================
-        // POMOCNICZE
-        // ============================================================
-        function applyStepToPins(pins, step) {
-            const parts = step.split(' ');
-            const pinIndex = parseInt(parts[1]) - 1;
-            const isForward = step.includes('→');
-            const lock = locks[currentLockIndex];
-            const pinRules = lock.rules.filter(r => r.fromPin === pinIndex + 1);
-
-            for (const rule of pinRules) {
+  // ===================== SOLVER =====================
+  class LockSolver {
+    solve(lockData) {
+      const pinCount = lockData.pinCount;
+      const target = lockData.targetValue;
+      const initialPins = [...lockData.initialPins];
+      const rules = lockData.rules;
+      if (!initialPins || initialPins.length !== pinCount) return null;
+      for (let i=0; i<initialPins.length; i++) if (initialPins[i]<1 || initialPins[i]>7) return null;
+      const visited = new Set();
+      const queue = [];
+      queue.push({ state: [...initialPins], steps: [] });
+      visited.add(stateToString(initialPins));
+      const maxSteps = 50;
+      while (queue.length > 0) {
+        const { state, steps } = queue.shift();
+        if (steps.length > maxSteps) continue;
+        if (allAtTarget(state, target)) return steps;
+        for (let pin = 1; pin <= pinCount; pin++) {
+          for (const direction of [1, -1]) {
+            const pinRules = rules.filter(r => r.fromPin === pin);
+            let canMove = true;
+            const selfNewValue = state[pin-1] + direction;
+            if (selfNewValue < 1 || selfNewValue > 7) canMove = false;
+            if (canMove) {
+              for (const rule of pinRules) {
                 const toPin = rule.toPin - 1;
-                const change = isForward ? rule.direction : -rule.direction;
-                const newValue = pins[toPin] + change;
-                if (newValue >= 1 && newValue <= 7) {
-                    pins[toPin] = newValue;
-                }
+                if (toPin < 0 || toPin >= pinCount) { canMove = false; break; }
+                const newValue = state[toPin] + direction * rule.direction;
+                if (newValue < 1 || newValue > 7) { canMove = false; break; }
+              }
             }
-            const selfChange = isForward ? 1 : -1;
-            const selfNewValue = pins[pinIndex] + selfChange;
-            if (selfNewValue >= 1 && selfNewValue <= 7) {
-                pins[pinIndex] = selfNewValue;
+            if (!canMove) continue;
+            const newState = [...state];
+            for (const rule of pinRules) {
+              const toPin = rule.toPin - 1;
+              newState[toPin] = newState[toPin] + direction * rule.direction;
             }
+            newState[pin-1] = newState[pin-1] + direction;
+            const stepDesc = `Zapadka ${pin} ${direction === 1 ? "→" : "←"}`;
+            const newSteps = [...steps, stepDesc];
+            const stateKey = stateToString(newState);
+            if (!visited.has(stateKey)) {
+              visited.add(stateKey);
+              queue.push({ state: newState, steps: newSteps });
+            }
+          }
         }
+      }
+      return null;
+    }
+  }
+  function allAtTarget(state, target) { return state.every(p => p === target); }
+  function stateToString(state) { return state.join(","); }
 
-        function translateStep(step, lang) {
-            const t = translations[lang];
-            if (!t) return step;
-            
-            const pinMatch = step.match(/Zapadka (\d+) (→|←)/);
-            if (pinMatch) {
-                const pinNumber = pinMatch[1];
-                const direction = pinMatch[2];
-                const pinWord = t.pin_word || 'Zapadka';
-                const directionWord = direction === '→' ? (t.direction_right || '→') : (t.direction_left || '←');
-                return `${pinWord} ${pinNumber} ${directionWord}`;
-            }
-            return step;
+  // ===================== APLIKACJA =====================
+  let locks = [];
+  let currentLockIndex = -1;
+  let selectedPin = -1;
+  let highlightedPin = -1;
+  let currentPins = [];
+  let solutionSteps = [];
+  let currentStepIndex = -1;
+  let isPlaying = false;
+  let playInterval = null;
+  let speed = 800;
+  const solver = new LockSolver();
+  const STORAGE_KEY = 'gothicLockStudio_locks';
+
+  // ===================== ZAPIS / ODCZYT =====================
+  function saveLocksToStorage() {
+    try {
+      const data = locks.map(lock => ({
+        name: lock.name,
+        description: lock.description,
+        pinCount: lock.pinCount,
+        initialPins: lock.initialPins,
+        rules: lock.rules.map(r => ({ fromPin: r.fromPin, toPin: r.toPin, direction: r.direction })),
+        solution: lock.solution || [],
+        isSolved: lock.isSolved || false
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch(e) { console.warn(e); }
+  }
+  function loadLocksFromStorage() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return false;
+      const data = JSON.parse(saved);
+      if (!data || !data.length) return false;
+      locks = data.map(lockData => {
+        const lock = new LockData(lockData.name, lockData.description || '', lockData.pinCount || 3, lockData.initialPins || [], []);
+        if (lockData.rules) lock.rules = lockData.rules.map(r => new Rule(r.fromPin, r.toPin, r.direction));
+        if (lockData.solution) lock.solution = lockData.solution;
+        lock.isSolved = lockData.isSolved || false;
+        return lock;
+      });
+      return true;
+    } catch(e) { return false; }
+  }
+  function autoSave() { saveLocksToStorage(); }
+
+  // ===================== EKSPORT / IMPORT =====================
+  function exportLocks() {
+    if (locks.length === 0) { setStatus(translations[currentLanguage].no_locks_to_export || '❌ Brak zamków'); return; }
+    const data = JSON.stringify(locks, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `zamki_${new Date().toISOString().slice(0,10)}.json`;
+    a.click(); URL.revokeObjectURL(url);
+    setStatus(translations[currentLanguage].export_success || '✅ Eksport zakończony');
+  }
+  function importLocks() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (!Array.isArray(data) || data.length === 0) throw new Error('Invalid');
+          locks = data.map(lockData => {
+            const lock = new LockData(lockData.name, lockData.description || '', lockData.pinCount || 3, lockData.initialPins || [], []);
+            if (lockData.rules) lock.rules = lockData.rules.map(r => new Rule(r.fromPin, r.toPin, r.direction));
+            if (lockData.solution) lock.solution = lockData.solution;
+            lock.isSolved = lockData.isSolved || false;
+            return lock;
+          });
+          autoSave();
+          if (locks.length > 0) loadLock(0); else { currentLockIndex = -1; enableControls(false); renderAll(); }
+          setStatus((translations[currentLanguage].import_success || '✅ Zaimportowano') + ` ${locks.length} ` + (translations[currentLanguage].locks || 'zamków'));
+        } catch(err) {
+          setStatus(translations[currentLanguage].import_error || '❌ Błąd importu');
         }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
 
-        // ============================================================
-        // OBSŁUGA ZDARZEŃ FORMULARZA
-        // ============================================================
-        document.getElementById('lockName').addEventListener('change', function() {
-            const lock = locks[currentLockIndex];
-            if (lock) {
-                lock.name = this.value || 'Bez nazwy';
-                renderLockList();
-                autoSave();
-            }
-        });
-
-        document.getElementById('lockDesc').addEventListener('change', function() {
-            const lock = locks[currentLockIndex];
-            if (lock) {
-                lock.description = this.value || '';
-                autoSave();
-            }
-        });
-
-        document.getElementById('pinCount').addEventListener('change', function() {
-            const lock = locks[currentLockIndex];
-            if (!lock) return;
-            const newCount = parseInt(this.value);
-            lock.pinCount = newCount;
-            const newPins = [];
-            for (let i = 0; i < newCount; i++) {
-                if (i < lock.initialPins.length) {
-                    newPins[i] = lock.initialPins[i];
-                } else {
-                    newPins[i] = 4;
-                }
-            }
-            lock.initialPins = newPins;
-            currentPins = [...newPins];
-            lock.rules = lock.rules.filter(r => r.fromPin <= newCount && r.toPin <= newCount);
-            lock.solution = [];
-            solutionSteps = [];
-            currentStepIndex = -1;
-            isLockSolved = false;
-            stopPlayback();
-            renderLockVisualization();
-            renderRules();
-            renderSolution();
-            updateStats();
-            updateSimulationControls(false);
-            updateStepInfo();
-            document.getElementById('statusMessage').textContent = `Zmieniono ilość zapadek na ${newCount}`;
-            document.getElementById('statusMessage').className = 'status';
-            autoSave();
-        });
-
-        document.getElementById('speedSlider').addEventListener('input', function() {
-            const val = parseInt(this.value);
-            document.getElementById('speedLabel').textContent = (val / 5).toFixed(1) + 'x';
-            speed = Math.max(200, 1200 - val * 100);
-        });
-
-        // ============================================================
-        // TŁUMACZENIA – PEŁNE 4 JĘZYKI
-        // ============================================================
-        const translations = {
-            'pl': {
-                'my_locks': 'MOJE ZAMKI',
-                'no_locks': 'Brak zamków – kliknij "➕ Nowy"',
-                'add_new': '➕ Nowy',
-                'delete': '🗑 Usuń wybrany',
-                'export': '💾 Eksportuj zamki',
-                'import': '📂 Importuj zamki',
-                'no_lock_to_delete': 'Nie ma zamka do usunięcia',
-                'no_locks_to_delete': 'Brak zamków do usunięcia',
-                'no_locks_to_export': '❌ Brak zamków do eksportu',
-                'export_success': '✅ Eksport zakończony',
-                'import_success': '✅ Zaimportowano',
-                'import_error': '❌ Błąd importu: nieprawidłowy plik',
-                'locks': 'zamków',
-                'lock_deleted': 'Usunięto zamek',
-                'added_lock': 'Dodano nowy zamek',
-                'lock_solved_blocked': '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek. Zmień coś w zamku aby odblokować.',
-                'visualization_locked': '🔒 Zamek rozwiązany – zapadki zablokowane',
-                'legend_lock_info': 'BLOKADA ZAPADEK',
-                'legend_lock_info_desc': ' – po znalezieniu rozwiązania zapadki są blokowane, aby nie zniszczyć sekwencji. Zmień reguły lub nazwę zamka aby odblokować.',
-                
-                'editor_title': 'EDYTOR ZAMKA',
-                'name': 'Nazwa:',
-                'name_placeholder': 'Wpisz nazwę zamka',
-                'description': 'Opis:',
-                'description_placeholder': 'Wpisz opis zamka',
-                'pin_count': 'Ilość zapadek:',
-                'rules': 'Reguły',
-                'no_rules': 'Brak reguł',
-                'add_rule': '+ Dodaj regułę',
-                'solve': '🔓 Rozwiąż zamek',
-                'status': 'Stan: Dodaj nowy zamek aby rozpocząć',
-                
-                'legend_title': 'Co oznaczają symbole?',
-                'legend_same': 'ten sam kierunek',
-                'legend_same_desc': ' – zapadka przesuwa się w tę samą stronę',
-                'legend_opposite': 'przeciwny kierunek',
-                'legend_opposite_desc': ' – zapadka przesuwa się w przeciwną stronę',
-                'legend_no_rule': 'BRAK REGUŁY',
-                'legend_no_rule_desc': ' – zapadka porusza się TYLKO sama (nie wpływa na inne)',
-                'legend_important': 'Ważne:',
-                'legend_important_desc': 'Jeśli nie chcesz, aby zapadka wpływała na inne – nie dodawaj dla niej reguły.',
-                
-                'stats_title': 'Statystyki',
-                'stats_moves': '• Najkrótsza liczba ruchów:',
-                'stats_rules': '• Liczba reguł:',
-                'stats_pins': '• Liczba zapadek:',
-                'stats_default': '---',
-                
-                'visualization_title': '1. Stan zamka',
-                'visualization_empty': 'Dodaj zamek aby rozpocząć',
-                'visualization_hint': '💡 Kliknij na otwór aby ustawić bołec',
-                'position_label': 'Pozycja:',
-                
-                'solution_title': 'Rozwiązanie',
-                'solution_empty': 'Dodaj zamek i kliknij "Rozwiąż zamek"',
-                'solution_click': 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie',
-                'solution_found': '✅ Rozwiązanie znalezione!',
-                'solution_not_found': '❌ Nie znaleziono rozwiązania!',
-                'solution_moves': 'ruchów',
-                'pin_word': 'Zapadka',
-                'direction_right': '→',
-                'direction_left': '←',
-                
-                'sim_first': '⏮ Pierwszy',
-                'sim_prev': '◀ Poprzedni',
-                'sim_play': '▶ Odtwarzaj',
-                'sim_pause': '⏸ Pauza',
-                'sim_next': 'Następny ▶',
-                'sim_last': 'Ostatni ⏭',
-                'sim_speed': 'Prędkość:',
-                'sim_step': 'Krok:',
-                'sim_step_label': 'Krok',
-                'sim_initial': 'Stan początkowy',
-                
-                'footer': 'Gothic Lock Studio',
-                'footer_author': 'stworzone przez kesajXIII (kesaj13@tlen.pl)',
-                'footer_rights': 'Wszelkie prawa zastrzeżone'
-            },
-            'en': {
-                'my_locks': 'MY LOCKS',
-                'no_locks': 'No locks – click "➕ New"',
-                'add_new': '➕ New',
-                'delete': '🗑 Delete selected',
-                'export': '💾 Export locks',
-                'import': '📂 Import locks',
-                'no_lock_to_delete': 'No lock to delete',
-                'no_locks_to_delete': 'No locks to delete',
-                'no_locks_to_export': '❌ No locks to export',
-                'export_success': '✅ Export completed',
-                'import_success': '✅ Imported',
-                'import_error': '❌ Import error: invalid file',
-                'locks': 'locks',
-                'lock_deleted': 'Lock deleted',
-                'added_lock': 'New lock added',
-                'lock_solved_blocked': '🔒 Lock solved – you cannot change pins. Change something in the lock to unlock.',
-                'visualization_locked': '🔒 Lock solved – pins locked',
-                'legend_lock_info': 'PIN LOCK',
-                'legend_lock_info_desc': ' – after finding a solution, pins are locked to prevent breaking the sequence. Change rules or lock name to unlock.',
-                
-                'editor_title': 'LOCK EDITOR',
-                'name': 'Name:',
-                'name_placeholder': 'Enter lock name',
-                'description': 'Description:',
-                'description_placeholder': 'Enter lock description',
-                'pin_count': 'Number of pins:',
-                'rules': 'Rules',
-                'no_rules': 'No rules',
-                'add_rule': '+ Add rule',
-                'solve': '🔓 Solve lock',
-                'status': 'Status: Add a new lock to start',
-                
-                'legend_title': 'What do the symbols mean?',
-                'legend_same': 'same direction',
-                'legend_same_desc': ' – the pin moves in the same direction',
-                'legend_opposite': 'opposite direction',
-                'legend_opposite_desc': ' – the pin moves in the opposite direction',
-                'legend_no_rule': 'NO RULE',
-                'legend_no_rule_desc': ' – the pin moves ONLY by itself (does not affect others)',
-                'legend_important': 'Important:',
-                'legend_important_desc': "If you don't want the pin to affect others – do not add a rule for it.",
-                
-                'stats_title': 'Statistics',
-                'stats_moves': '• Shortest number of moves:',
-                'stats_rules': '• Number of rules:',
-                'stats_pins': '• Number of pins:',
-                'stats_default': '---',
-                
-                'visualization_title': '1. Lock state',
-                'visualization_empty': 'Add a lock to start',
-                'visualization_hint': '💡 Click on a hole to set the bolt',
-                'position_label': 'Position:',
-                
-                'solution_title': 'Solution',
-                'solution_empty': 'Add a lock and click "Solve lock"',
-                'solution_click': 'Click "Solve lock" to find a solution',
-                'solution_found': '✅ Solution found!',
-                'solution_not_found': '❌ No solution found!',
-                'solution_moves': 'moves',
-                'pin_word': 'Pin',
-                'direction_right': '→',
-                'direction_left': '←',
-                
-                'sim_first': '⏮ First',
-                'sim_prev': '◀ Previous',
-                'sim_play': '▶ Play',
-                'sim_pause': '⏸ Pause',
-                'sim_next': 'Next ▶',
-                'sim_last': 'Last ⏭',
-                'sim_speed': 'Speed:',
-                'sim_step': 'Step:',
-                'sim_step_label': 'Step',
-                'sim_initial': 'Initial state',
-                
-                'footer': 'Gothic Lock Studio',
-                'footer_author': 'created by kesajXIII (kesaj13@tlen.pl)',
-                'footer_rights': 'All rights reserved'
-            },
-            'de': {
-                'my_locks': 'MEINE SCHLÖSSER',
-                'no_locks': 'Keine Schlösser – klicke "➕ Neu"',
-                'add_new': '➕ Neu',
-                'delete': '🗑 Ausgewählte löschen',
-                'export': '💾 Schlösser exportieren',
-                'import': '📂 Schlösser importieren',
-                'no_lock_to_delete': 'Kein Schloss zum Löschen',
-                'no_locks_to_delete': 'Keine Schlösser zum Löschen',
-                'no_locks_to_export': '❌ Keine Schlösser zum Exportieren',
-                'export_success': '✅ Export abgeschlossen',
-                'import_success': '✅ Importiert',
-                'import_error': '❌ Importfehler: ungültige Datei',
-                'locks': 'Schlösser',
-                'lock_deleted': 'Schloss gelöscht',
-                'added_lock': 'Neues Schloss hinzugefügt',
-                'lock_solved_blocked': '🔒 Schloss gelöst – du kannst die Stifte nicht ändern. Ändere etwas am Schloss, um es zu entsperren.',
-                'visualization_locked': '🔒 Schloss gelöst – Stifte gesperrt',
-                'legend_lock_info': 'STIFT-SPERRE',
-                'legend_lock_info_desc': ' – nach dem Finden einer Lösung werden die Stifte gesperrt, um die Sequenz nicht zu zerstören. Ändere Regeln oder den Namen des Schlosses, um zu entsperren.',
-                
-                'editor_title': 'SCHLOSS-EDITOR',
-                'name': 'Name:',
-                'name_placeholder': 'Name des Schlosses eingeben',
-                'description': 'Beschreibung:',
-                'description_placeholder': 'Beschreibung des Schlosses eingeben',
-                'pin_count': 'Anzahl der Stifte:',
-                'rules': 'Regeln',
-                'no_rules': 'Keine Regeln',
-                'add_rule': '+ Regel hinzufügen',
-                'solve': '🔓 Schloss lösen',
-                'status': 'Status: Füge ein neues Schloss hinzu, um zu beginnen',
-                
-                'legend_title': 'Was bedeuten die Symbole?',
-                'legend_same': 'gleiche Richtung',
-                'legend_same_desc': ' – der Stift bewegt sich in die gleiche Richtung',
-                'legend_opposite': 'entgegengesetzte Richtung',
-                'legend_opposite_desc': ' – der Stift bewegt sich in die entgegengesetzte Richtung',
-                'legend_no_rule': 'KEINE REGEL',
-                'legend_no_rule_desc': ' – der Stift bewegt sich NUR von selbst (beeinflusst andere nicht)',
-                'legend_important': 'Wichtig:',
-                'legend_important_desc': 'Wenn du nicht möchtest, dass der Stift andere beeinflusst – füge keine Regel für ihn hinzu.',
-                
-                'stats_title': 'Statistiken',
-                'stats_moves': '• Kürzeste Anzahl von Zügen:',
-                'stats_rules': '• Anzahl der Regeln:',
-                'stats_pins': '• Anzahl der Stifte:',
-                'stats_default': '---',
-                
-                'visualization_title': '1. Zustand des Schlosses',
-                'visualization_empty': 'Füge ein Schloss hinzu, um zu beginnen',
-                'visualization_hint': '💡 Klicke auf ein Loch, um den Bolzen zu setzen',
-                'position_label': 'Position:',
-                
-                'solution_title': 'Lösung',
-                'solution_empty': 'Füge ein Schloss hinzu und klicke "Schloss lösen"',
-                'solution_click': 'Klicke "Schloss lösen", um eine Lösung zu finden',
-                'solution_found': '✅ Lösung gefunden!',
-                'solution_not_found': '❌ Keine Lösung gefunden!',
-                'solution_moves': 'Züge',
-                'pin_word': 'Stift',
-                'direction_right': '→',
-                'direction_left': '←',
-                
-                'sim_first': '⏮ Erste',
-                'sim_prev': '◀ Vorherige',
-                'sim_play': '▶ Abspielen',
-                'sim_pause': '⏸ Pause',
-                'sim_next': 'Nächste ▶',
-                'sim_last': 'Letzte ⏭',
-                'sim_speed': 'Geschwindigkeit:',
-                'sim_step': 'Schritt:',
-                'sim_step_label': 'Schritt',
-                'sim_initial': 'Anfangszustand',
-                
-                'footer': 'Gothic Lock Studio',
-                'footer_author': 'erstellt von kesajXIII (kesaj13@tlen.pl)',
-                'footer_rights': 'Alle Rechte vorbehalten'
-            },
-            'ru': {
-                'my_locks': 'МОИ ЗАМКИ',
-                'no_locks': 'Нет замков – нажмите "➕ Новый"',
-                'add_new': '➕ Новый',
-                'delete': '🗑 Удалить выбранный',
-                'export': '💾 Экспортировать замки',
-                'import': '📂 Импортировать замки',
-                'no_lock_to_delete': 'Нет замка для удаления',
-                'no_locks_to_delete': 'Нет замков для удаления',
-                'no_locks_to_export': '❌ Нет замков для экспорта',
-                'export_success': '✅ Экспорт завершен',
-                'import_success': '✅ Импортировано',
-                'import_error': '❌ Ошибка импорта: неверный файл',
-                'locks': 'замков',
-                'lock_deleted': 'Замок удален',
-                'added_lock': 'Новый замок добавлен',
-                'lock_solved_blocked': '🔒 Замок решен – вы не можете менять пины. Измените что-то в замке, чтобы разблокировать.',
-                'visualization_locked': '🔒 Замок решен – пины заблокированы',
-                'legend_lock_info': 'БЛОКИРОВКА ПИНОВ',
-                'legend_lock_info_desc': ' – после нахождения решения пины блокируются, чтобы не нарушить последовательность. Измените правила или название замка, чтобы разблокировать.',
-                
-                'editor_title': 'РЕДАКТОР ЗАМКА',
-                'name': 'Название:',
-                'name_placeholder': 'Введите название замка',
-                'description': 'Описание:',
-                'description_placeholder': 'Введите описание замка',
-                'pin_count': 'Количество пинов:',
-                'rules': 'Правила',
-                'no_rules': 'Нет правил',
-                'add_rule': '+ Добавить правило',
-                'solve': '🔓 Решить замок',
-                'status': 'Состояние: Добавьте новый замок, чтобы начать',
-                
-                'legend_title': 'Что означают символы?',
-                'legend_same': 'то же направление',
-                'legend_same_desc': ' – пин движется в том же направлении',
-                'legend_opposite': 'противоположное направление',
-                'legend_opposite_desc': ' – пин движется в противоположном направлении',
-                'legend_no_rule': 'НЕТ ПРАВИЛА',
-                'legend_no_rule_desc': ' – пин движется ТОЛЬКО сам (не влияет на другие)',
-                'legend_important': 'Важно:',
-                'legend_important_desc': 'Если вы не хотите, чтобы пин влиял на другие – не добавляйте для него правило.',
-                
-                'stats_title': 'Статистика',
-                'stats_moves': '• Наименьшее количество ходов:',
-                'stats_rules': '• Количество правил:',
-                'stats_pins': '• Количество пинов:',
-                'stats_default': '---',
-                
-                'visualization_title': '1. Состояние замка',
-                'visualization_empty': 'Добавьте замок, чтобы начать',
-                'visualization_hint': '💡 Нажмите на отверстие, чтобы установить болт',
-                'position_label': 'Позиция:',
-                
-                'solution_title': 'Решение',
-                'solution_empty': 'Добавьте замок и нажмите "Решить замок"',
-                'solution_click': 'Нажмите "Решить замок", чтобы найти решение',
-                'solution_found': '✅ Решение найдено!',
-                'solution_not_found': '❌ Решение не найдено!',
-                'solution_moves': 'ходов',
-                'pin_word': 'Пин',
-                'direction_right': '→',
-                'direction_left': '←',
-                
-                'sim_first': '⏮ Первый',
-                'sim_prev': '◀ Предыдущий',
-                'sim_play': '▶ Воспроизвести',
-                'sim_pause': '⏸ Пауза',
-                'sim_next': 'Следующий ▶',
-                'sim_last': 'Последний ⏭',
-                'sim_speed': 'Скорость:',
-                'sim_step': 'Шаг:',
-                'sim_step_label': 'Шаг',
-                'sim_initial': 'Начальное состояние',
-                
-                'footer': 'Gothic Lock Studio',
-                'footer_author': 'создано kesajXIII (kesaj13@tlen.pl)',
-                'footer_rights': 'Все права защищены'
-            }
+  // ===================== RENDEROWANIE =====================
+  function renderAll() {
+    renderLockList(); renderLockVisualization(); renderRules(); renderSolution(); updateStats(); updateSimulationControls(true); updateStepInfo();
+    document.getElementById('lockCountBadge').textContent = locks.length;
+  }
+  function renderLockList() {
+    const list = document.getElementById('lockList');
+    list.innerHTML = '';
+    if (locks.length === 0) {
+      list.innerHTML = '<li class="empty-message" data-i18n="no_locks">Brak zamków – kliknij "➕ Nowy"</li>';
+      return;
+    }
+    locks.forEach((lock, index) => {
+      const li = document.createElement('li');
+      li.className = index === currentLockIndex ? 'active' : '';
+      li.dataset.index = index;
+      li.innerHTML = `${lock.name} <span class="badge">${lock.pinCount} zap.</span>`;
+      li.onclick = () => loadLock(index);
+      list.appendChild(li);
+    });
+    document.getElementById('lockCountBadge').textContent = locks.length;
+  }
+  
+  function renderLockVisualization() {
+    const container = document.getElementById('lockVisualization');
+    const hint = document.getElementById('pinHint');
+    container.innerHTML = '';
+    if (currentLockIndex < 0 || currentLockIndex >= locks.length) {
+      container.innerHTML = '<div class="empty-message" data-i18n="visualization_empty">Wybierz lub dodaj zamek</div>';
+      container.className = 'lock-visualization';
+      hint.className = 'pin-hint';
+      hint.innerHTML = translations[currentLanguage].visualization_hint || '💡 Kliknij na otwór aby ustawić bolec';
+      return;
+    }
+    const lock = locks[currentLockIndex];
+    const lang = currentLanguage;
+    const t = translations[lang];
+    
+    const allSolved = currentPins.every(p => p === lock.targetValue);
+    const isLocked = lock.isSolved === true;
+    
+    if (isLocked) {
+      container.className = 'lock-visualization locked';
+    } else if (allSolved) {
+      container.className = 'lock-visualization solved';
+    } else {
+      container.className = 'lock-visualization';
+    }
+    
+    if (isLocked) {
+      hint.className = 'pin-hint locked';
+      hint.innerHTML = t.visualization_locked || '🔒 Zamek rozwiązany – zapadki zablokowane';
+    } else if (allSolved) {
+      hint.className = 'pin-hint solved-hint';
+      hint.innerHTML = t.all_bolts_at_position || '✅ WSZYSTKIE BOLCE NA POZYCJI 4! Kliknij "Rozwiąż zamek" aby zablokować! 🎉';
+    } else {
+      hint.className = 'pin-hint';
+      hint.innerHTML = t.visualization_hint || '💡 Kliknij na otwór aby ustawić bolec';
+    }
+    
+    for (let i = 0; i < lock.pinCount; i++) {
+      const value = currentPins[i] || 4;
+      const isAtTarget = (value === lock.targetValue);
+      
+      const pinDiv = document.createElement('div');
+      pinDiv.className = `lock-pin ${i === selectedPin ? 'selected' : ''} ${i === highlightedPin ? 'highlighted' : ''} ${isLocked ? 'locked' : ''} ${allSolved && !isLocked ? 'solved' : ''}`;
+      pinDiv.onclick = () => onPinClick(i);
+      
+      const label = document.createElement('div'); 
+      label.className = 'pin-label'; 
+      label.textContent = i+1;
+      pinDiv.appendChild(label);
+      
+      const body = document.createElement('div'); 
+      body.className = 'pin-body';
+      
+      for (let hole = 0; hole < 7; hole++) {
+        const hasPin = (hole + 1 === value);
+        const holeDiv = document.createElement('div');
+        holeDiv.className = `pin-hole ${hasPin ? 'has-pin' : ''}`;
+        holeDiv.onclick = (e) => { 
+          e.stopPropagation(); 
+          if (isLocked) {
+            setStatus(t.lock_solved_blocked || '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek.');
+            return;
+          }
+          onHoleClick(i, hole); 
         };
+        if (hasPin) {
+          const bolt = document.createElement('div');
+          bolt.className = `pin-bolt ${isAtTarget ? 'solved-bolt' : ''}`;
+          holeDiv.appendChild(bolt);
+        }
+        body.appendChild(holeDiv);
+      }
+      pinDiv.appendChild(body);
+      
+      const position = document.createElement('div');
+      position.className = `pin-position ${isAtTarget ? 'solved-pos' : ''}`;
+      position.textContent = `${t.position_label || 'Pozycja:'} ${value}/7`;
+      pinDiv.appendChild(position);
+      container.appendChild(pinDiv);
+    }
+    updateStats();
+  }
+  
+  function renderRules() {
+    const container = document.getElementById('rulesList');
+    const lock = locks[currentLockIndex];
+    if (!lock) { container.innerHTML = '<div class="no-rules" data-i18n="no_rules">Brak reguł</div>'; return; }
+    container.innerHTML = '';
+    if (lock.rules.length === 0) { container.innerHTML = '<div class="no-rules" data-i18n="no_rules">Brak reguł</div>'; return; }
+    lock.rules.forEach((rule, index) => {
+      const row = document.createElement('div'); row.className = 'rule-row';
+      const num = document.createElement('span'); num.className = 'rule-number'; num.textContent = `${index+1}.`; row.appendChild(num);
+      const fromInput = document.createElement('input'); fromInput.type = 'number'; fromInput.min = 1; fromInput.max = lock.pinCount; fromInput.value = rule.fromPin; fromInput.onchange = () => updateRule(index, 0, parseInt(fromInput.value)); row.appendChild(fromInput);
+      const arrow = document.createElement('span'); arrow.textContent = '→'; row.appendChild(arrow);
+      const toInput = document.createElement('input'); toInput.type = 'number'; toInput.min = 1; toInput.max = lock.pinCount; toInput.value = rule.toPin; toInput.onchange = () => updateRule(index, 1, parseInt(toInput.value)); row.appendChild(toInput);
+      const dirSelect = document.createElement('select');
+      const plusOpt = document.createElement('option'); plusOpt.value = '1'; plusOpt.textContent = '+';
+      const minusOpt = document.createElement('option'); minusOpt.value = '-1'; minusOpt.textContent = '-';
+      dirSelect.appendChild(plusOpt); dirSelect.appendChild(minusOpt);
+      dirSelect.value = rule.direction; dirSelect.onchange = () => updateRule(index, 2, parseInt(dirSelect.value)); row.appendChild(dirSelect);
+      const removeBtn = document.createElement('button'); removeBtn.className = 'btn-remove'; removeBtn.textContent = '✕'; removeBtn.onclick = () => removeRule(index); row.appendChild(removeBtn);
+      container.appendChild(row);
+    });
+  }
+  function renderSolution() {
+    const container = document.getElementById('solutionList');
+    const lock = locks[currentLockIndex];
+    const t = translations[currentLanguage];
+    if (!lock) { container.innerHTML = `<div style="color:#6f5d4a; font-style:italic; padding:10px; text-align:center;">${t.solution_empty || 'Dodaj zamek i kliknij "Rozwiąż zamek"'}</div>`; updateSimulationControls(false); return; }
+    if (!lock.solution || lock.solution.length === 0) { container.innerHTML = `<div style="color:#6f5d4a; font-style:italic; padding:10px; text-align:center;">${t.solution_click || 'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie'}</div>`; updateSimulationControls(false); return; }
+    container.innerHTML = '';
+    lock.solution.forEach((step, index) => {
+      const div = document.createElement('div');
+      div.className = `solution-step ${index === currentStepIndex ? 'active' : ''} ${index < currentStepIndex ? 'done' : ''}`;
+      div.textContent = `${index+1}. ${translateStep(step, currentLanguage)}`;
+      div.onclick = () => goToStep(index);
+      container.appendChild(div);
+    });
+    solutionSteps = lock.solution;
+    updateSimulationControls(true);
+    updateStepInfo();
+  }
+  function updateStats() {
+    const lock = locks[currentLockIndex];
+    const t = translations[currentLanguage];
+    if (!lock) {
+      document.getElementById('stats').innerHTML = `
+        <span>${t.stats_moves || '• Najkrótsza liczba ruchów:'} ---</span>
+        <span>${t.stats_rules || '• Liczba reguł:'} 0</span>
+        <span>${t.stats_pins || '• Liczba zapadek:'} ---</span>`;
+      return;
+    }
+    const solutionCount = lock.solution ? lock.solution.length : 0;
+    document.getElementById('stats').innerHTML = `
+      <span>${t.stats_moves || '• Najkrótsza liczba ruchów:'} ${solutionCount > 0 ? solutionCount : '---'}</span>
+      <span>${t.stats_rules || '• Liczba reguł:'} ${lock.rules.length}</span>
+      <span>${t.stats_pins || '• Liczba zapadek:'} ${lock.pinCount}</span>`;
+  }
 
-        let currentLanguage = 'pl';
+  function updateSimulationControls(enabled) {
+    const lock = locks[currentLockIndex];
+    const hasSteps = lock && lock.solution && lock.solution.length > 0;
+    ['btnFirst','btnPrev','btnNext','btnLast'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.disabled = !enabled || !hasSteps;
+    });
+    const playBtn = document.getElementById('btnPlay');
+    if (playBtn) {
+      if (!enabled || !hasSteps) { playBtn.disabled = true; } else {
+        playBtn.disabled = false;
+        if (!isPlaying) { playBtn.innerHTML = translations[currentLanguage].sim_play || '▶ Odtwarzaj'; playBtn.className = 'btn-play'; }
+      }
+    }
+    if (hasSteps && enabled) {
+      document.getElementById('btnFirst').disabled = currentStepIndex <= 0;
+      document.getElementById('btnPrev').disabled = currentStepIndex <= 0;
+      document.getElementById('btnNext').disabled = currentStepIndex >= solutionSteps.length - 1;
+      document.getElementById('btnLast').disabled = currentStepIndex >= solutionSteps.length - 1;
+    }
+  }
+  function updateStepInfo() {
+    const total = solutionSteps ? solutionSteps.length : 0;
+    const current = currentStepIndex >= 0 ? currentStepIndex + 1 : 0;
+    document.getElementById('stepInfo').textContent = `${translations[currentLanguage].sim_step || 'Krok:'} ${current}/${total}`;
+  }
 
-        function setLanguage(lang) {
-            currentLanguage = lang;
-            const t = translations[lang];
-            if (!t) return;
-            
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key] !== undefined) {
-                    el.textContent = t[key];
-                }
+  // ===================== NAWIGACJA SYMULACJI =====================
+  function goToStep(index) {
+    if (!solutionSteps || solutionSteps.length === 0) return;
+    if (index < -1) index = -1;
+    if (index >= solutionSteps.length) index = solutionSteps.length - 1;
+    currentStepIndex = index;
+    const lock = locks[currentLockIndex];
+    currentPins = [...lock.initialPins];
+    for (let i = 0; i <= index && i < solutionSteps.length; i++) applyStepToPins(currentPins, solutionSteps[i]);
+    highlightedPin = (index >= 0 && index < solutionSteps.length) ? parseInt(solutionSteps[index].split(' ')[1]) - 1 : -1;
+    renderLockVisualization(); 
+    renderSolution(); 
+    updateSimulationControls(true); 
+    updateStepInfo();
+    
+    const solutionContainer = document.getElementById('solutionList');
+    if (solutionContainer) {
+        const activeStep = solutionContainer.querySelector('.solution-step.active');
+        if (activeStep) {
+            activeStep.scrollIntoView({ 
+                block: 'center', 
+                behavior: 'smooth' 
             });
-            
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (t[key] !== undefined) {
-                    el.placeholder = t[key];
-                }
-            });
-            
-            localStorage.setItem('gothic-lock-language', lang);
-            
-            updateStats();
-            renderSolution();
-            updateStepInfo();
-            updateSimulationControls(true);
-            renderLockVisualization();
         }
+    }
+    
+    const t = translations[currentLanguage];
+    if (index >= 0 && index < solutionSteps.length) {
+        setStatus(`${t.sim_step_label || 'Krok'} ${index+1}/${solutionSteps.length}: ${translateStep(solutionSteps[index], currentLanguage)}`);
+    } else {
+        setStatus(t.sim_initial || 'Stan początkowy');
+    }
+  }
+  
+  function goToFirstStep() { goToStep(0); }
+  function goToPrevStep() { goToStep(currentStepIndex - 1); }
+  function goToNextStep() { goToStep(currentStepIndex + 1); }
+  function goToLastStep() { goToStep(solutionSteps.length - 1); }
 
-        const savedLang = localStorage.getItem('gothic-lock-language');
-        if (savedLang && translations[savedLang]) {
-            setLanguage(savedLang);
-        } else {
-            setLanguage('pl');
-        }
+  // ===================== ODTWARZANIE =====================
+  function togglePlay() {
+    if (isPlaying) { stopPlayback(); } else { startPlayback(); }
+  }
+  function startPlayback() {
+    if (!solutionSteps || solutionSteps.length === 0) return;
+    if (currentStepIndex >= solutionSteps.length - 1) goToStep(-1);
+    isPlaying = true;
+    const playBtn = document.getElementById('btnPlay');
+    playBtn.innerHTML = translations[currentLanguage].sim_pause || '⏸ Pauza';
+    playBtn.className = 'btn-play playing';
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = parseInt(speedSlider.value);
+    speed = Math.max(200, 1200 - speedValue * 100);
+    setTimeout(() => { if (isPlaying) playNextStep(); }, 300);
+  }
+  function playNextStep() {
+    if (!isPlaying) return;
+    if (!solutionSteps || solutionSteps.length === 0) { stopPlayback(); return; }
+    if (currentStepIndex >= solutionSteps.length - 1) { stopPlayback(); return; }
+    goToStep(currentStepIndex + 1);
+    playInterval = setTimeout(playNextStep, speed);
+  }
+  function stopPlayback() {
+    isPlaying = false;
+    if (playInterval) { clearTimeout(playInterval); playInterval = null; }
+    const playBtn = document.getElementById('btnPlay');
+    playBtn.innerHTML = translations[currentLanguage].sim_play || '▶ Odtwarzaj';
+    playBtn.className = 'btn-play';
+  }
 
-        // ============================================================
-        // LICZNIK ODWIEDZIN (lokalny)
-        // ============================================================
-        (function() {
-            try {
-                const counter = document.getElementById('visitorCount');
-                if (!counter) return;
-                
-                let count = parseInt(localStorage.getItem('gothicLockVisits')) || 0;
-                
-                if (!sessionStorage.getItem('gothicLockVisited')) {
-                    count++;
-                    localStorage.setItem('gothicLockVisits', count);
-                    sessionStorage.setItem('gothicLockVisited', 'true');
-                }
-                
-                counter.textContent = 'Odwiedziny: ' + count;
-                console.log('✅ Licznik zaktualizowany:', count);
-            } catch(e) {
-                console.log('❌ Błąd licznika:', e);
-                const counter = document.getElementById('visitorCount');
-                if (counter) {
-                    counter.textContent = 'Odwiedziny: 1';
-                }
-            }
-        })();
+  // ===================== INTERAKCJE =====================
+  function onPinClick(index) {
+    const lock = locks[currentLockIndex];
+    if (!lock) return;
+    if (lock.isSolved) { 
+      setStatus(translations[currentLanguage].lock_solved_blocked || '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek.'); 
+      return; 
+    }
+    selectedPin = selectedPin === index ? -1 : index;
+    renderLockVisualization();
+  }
+  function onHoleClick(pinIndex, holeIndex) {
+    const lock = locks[currentLockIndex];
+    if (!lock) return;
+    if (lock.isSolved) { 
+      setStatus(translations[currentLanguage].lock_solved_blocked || '🔒 Zamek rozwiązany – nie możesz zmieniać zapadek.'); 
+      return; 
+    }
+    const newValue = holeIndex + 1;
+    if (currentPins[pinIndex] !== newValue) {
+      currentPins[pinIndex] = newValue;
+      lock.initialPins = [...currentPins];
+      lock.solution = [];
+      solutionSteps = [];
+      currentStepIndex = -1;
+      highlightedPin = -1;
+      selectedPin = -1;
+      lock.isSolved = false;
+      stopPlayback();
+      renderLockVisualization();
+      renderSolution();
+      setStatus(`🔄 Zapadka ${pinIndex+1} → pozycja ${newValue}/7`);
+      updateStats(); updateSimulationControls(false); updateStepInfo();
+      autoSave();
+    }
+  }
 
-        // ============================================================
-        // INICJACJA
-        // ============================================================
+  // ===================== ZARZĄDZANIE ZAMKAMI =====================
+  function loadLock(index) {
+    if (index < 0 || index >= locks.length) {
+      currentLockIndex = -1; renderAll(); enableControls(false); setStatus('Brak zamków – dodaj nowy'); return;
+    }
+    currentLockIndex = index;
+    selectedPin = -1; highlightedPin = -1; currentStepIndex = -1; solutionSteps = []; stopPlayback();
+    const lock = locks[index];
+    document.getElementById('lockName').value = lock.name;
+    document.getElementById('lockDesc').value = lock.description || '';
+    document.getElementById('pinCount').value = lock.pinCount;
+    currentPins = [...lock.initialPins];
+    renderAll(); enableControls(true); setStatus(`📜 Załadowno: ${lock.name}`);
+  }
+  function enableControls(enabled) {
+    document.querySelector('.btn-solve').disabled = !enabled;
+    document.querySelector('.btn-add-rule').disabled = !enabled;
+    document.getElementById('lockName').disabled = !enabled;
+    document.getElementById('lockDesc').disabled = !enabled;
+    document.getElementById('pinCount').disabled = !enabled;
+  }
+  function addNewLock() {
+    const newLock = new LockData(`Nowy zamek ${locks.length+1}`, "Nowy zamek do edycji", 3, [4,4,4], []);
+    newLock.isSolved = false;
+    locks.push(newLock);
+    loadLock(locks.length - 1);
+    setStatus('✅ Dodano nowy zamek - ustaw bolce na pozycji 4');
+    autoSave();
+  }
+  function deleteCurrentLock() {
+    const t = translations[currentLanguage];
+    if (currentLockIndex < 0 || currentLockIndex >= locks.length || locks.length === 0) { setStatus(t.no_lock_to_delete || 'Nie ma zamka do usunięcia'); return; }
+    const lock = locks[currentLockIndex];
+    if (!confirm(`Czy na pewno usunąć zamek "${lock.name}"?`)) return;
+    locks.splice(currentLockIndex, 1);
+    if (locks.length === 0) { currentLockIndex = -1; enableControls(false); renderAll(); updateSimulationControls(false); updateStepInfo(); setStatus(t.lock_deleted || 'Usunięto zamek'); autoSave(); return; }
+    if (currentLockIndex >= locks.length) currentLockIndex = locks.length - 1;
+    loadLock(currentLockIndex);
+    setStatus(t.lock_deleted || 'Usunięto zamek');
+    autoSave();
+  }
 
-        const hasSavedLocks = loadLocksFromStorage();
+  // ===================== REGUŁY =====================
+  function addRule() {
+    const lock = locks[currentLockIndex];
+    if (!lock) return;
+    lock.rules.push(new Rule(1, 2, 1));
+    lock.isSolved = false;
+    renderRules();
+    lock.solution = []; solutionSteps = []; currentStepIndex = -1; stopPlayback();
+    renderSolution(); updateStats(); updateSimulationControls(false); updateStepInfo();
+    setStatus('📜 Dodano regułę'); autoSave();
+  }
+  function removeRule(index) {
+    const lock = locks[currentLockIndex];
+    if (!lock) return;
+    lock.rules.splice(index, 1);
+    lock.isSolved = false;
+    renderRules();
+    lock.solution = []; solutionSteps = []; currentStepIndex = -1; stopPlayback();
+    renderSolution(); updateStats(); updateSimulationControls(false); updateStepInfo();
+    setStatus('🗑 Usunięto regułę'); autoSave();
+  }
+  function updateRule(index, field, value) {
+    const lock = locks[currentLockIndex];
+    if (!lock) return;
+    if (field === 0) lock.rules[index].fromPin = value;
+    else if (field === 1) lock.rules[index].toPin = value;
+    else if (field === 2) lock.rules[index].direction = value;
+    lock.isSolved = false;
+    lock.solution = []; solutionSteps = []; currentStepIndex = -1; stopPlayback();
+    renderSolution(); updateStats(); updateSimulationControls(false); updateStepInfo();
+    autoSave();
+  }
 
-        if (hasSavedLocks && locks.length > 0) {
-            currentLockIndex = 0;
-            loadLock(0);
-            document.getElementById('statusMessage').textContent = `Wczytano ${locks.length} zamków z pamięci`;
-            document.getElementById('statusMessage').className = 'status';
-        } else {
-            currentLockIndex = -1;
-            isLockSolved = false;
-            enableControls(false);
-            renderLockList();
-            renderLockVisualization();
-            renderRules();
-            renderSolution();
-            updateStats();
-            updateSimulationControls(false);
-            updateStepInfo();
-            document.getElementById('statusMessage').textContent = 'Stan: Dodaj nowy zamek aby rozpocząć';
-            document.getElementById('statusMessage').className = 'status';
-        }
+  // ===================== ROZWIĄZYWANIE =====================
+  function solveLock() {
+    const lock = locks[currentLockIndex];
+    if (!lock) return;
+    if (!lock.initialPins || lock.initialPins.length !== lock.pinCount) {
+      lock.initialPins = []; for (let i=0; i<lock.pinCount; i++) lock.initialPins[i] = 4;
+      currentPins = [...lock.initialPins];
+      renderLockVisualization();
+      setStatus('Ustawiono domyślne pozycje zapadek (4/7)');
+      return;
+    }
+    lock.initialPins = [...currentPins];
+    const solution = solver.solve(lock);
+    const t = translations[currentLanguage];
+    if (solution && solution.length > 0) {
+      lock.solution = solution; 
+      solutionSteps = solution; 
+      currentStepIndex = -1; 
+      highlightedPin = -1; 
+      stopPlayback();
+      currentPins = [...lock.initialPins];
+      lock.isSolved = true;
+      setStatus(`✅ Rozwiązanie znalezione! ${solution.length} ruchów - zapadki zablokowane`);
+    } else {
+      lock.solution = []; 
+      solutionSteps = []; 
+      currentStepIndex = -1; 
+      lock.isSolved = false;
+      setStatus('❌ Nie znaleziono rozwiązania!');
+    }
+    renderLockVisualization(); renderSolution(); updateStats(); updateSimulationControls(true); updateStepInfo();
+    autoSave();
+  }
 
-        console.log('🔄 Gothic Lock Studio loaded successfully!');
-        console.log(`📚 ${locks.length} locks available`);
-    </script>
+  // ===================== POMOCNICZE =====================
+  function applyStepToPins(pins, step) {
+    const parts = step.split(' ');
+    const pinIndex = parseInt(parts[1]) - 1;
+    const isForward = step.includes('→');
+    const lock = locks[currentLockIndex];
+    const pinRules = lock.rules.filter(r => r.fromPin === pinIndex + 1);
+    for (const rule of pinRules) {
+      const toPin = rule.toPin - 1;
+      const change = isForward ? rule.direction : -rule.direction;
+      const newValue = pins[toPin] + change;
+      if (newValue >= 1 && newValue <= 7) pins[toPin] = newValue;
+    }
+    const selfChange = isForward ? 1 : -1;
+    const selfNewValue = pins[pinIndex] + selfChange;
+    if (selfNewValue >= 1 && selfNewValue <= 7) pins[pinIndex] = selfNewValue;
+  }
+  
+  function translateStep(step, lang) {
+    const t = translations[lang];
+    if (!t) return step;
+    const pinMatch = step.match(/Zapadka (\d+) (→|←)/);
+    if (pinMatch) {
+        const pinNumber = pinMatch[1];
+        const direction = pinMatch[2];
+        const pinWord = t.pin_word || 'Zapadka';
+        const reversedDirection = direction === '→' ? '←' : '→';
+        const directionWord = reversedDirection === '→' ? (t.direction_right || '→') : (t.direction_left || '←');
+        return `${pinWord} ${pinNumber} ${directionWord}`;
+    }
+    return step;
+  }
+  
+  function setStatus(msg) {
+    const el = document.getElementById('statusMessage');
+    el.innerHTML = msg;
+    el.className = 'status';
+  }
+
+  // ===================== TŁUMACZENIA =====================
+  const translations = {
+    'pl': { 
+      'my_locks':'🗝️ MOJE ZAMKI','no_locks':'Brak zamków – kliknij "➕ Nowy"','add_new':'➕ Nowy',
+      'delete':'🗑 Usuń wybrany','export':'💾 Eksportuj','import':'📂 Importuj',
+      'no_lock_to_delete':'Nie ma zamka do usunięcia','no_locks_to_delete':'Brak zamków do usunięcia',
+      'no_locks_to_export':'❌ Brak zamków do eksportu','export_success':'✅ Eksport zakończony',
+      'import_success':'✅ Zaimportowano','import_error':'❌ Błąd importu','locks':'zamków',
+      'lock_deleted':'Usunięto zamek','added_lock':'Dodano nowy zamek',
+      'lock_solved_blocked':'🔒 Zamek rozwiązany – nie możesz zmieniać zapadek.',
+      'visualization_locked':'🔒 Zamek rozwiązany – zapadki zablokowane',
+      'legend_lock_info':'BLOKADA ZAPADEK','legend_lock_info_desc':'– po rozwiązaniu zapadki blokują się',
+      'editor_title':'⚙️ EDYTOR ZAMKA','name':'Nazwa:','name_placeholder':'np. Zamek Królewski',
+      'description':'Opis:','description_placeholder':'opis...','pin_count':'Zapadki:',
+      'rules':'📜 Reguły','no_rules':'Brak reguł','add_rule':'+ Dodaj regułę',
+      'solve':'🔓 Rozwiąż zamek','status':'Stan: Dodaj nowy zamek aby rozpocząć',
+      'legend_title':'Co oznaczają symbole?','legend_same':'ten sam kierunek',
+      'legend_same_desc':'– zapadka przesuwa się w tę samą stronę',
+      'legend_opposite':'przeciwny kierunek','legend_opposite_desc':'– zapadka przesuwa się w przeciwną stronę',
+      'legend_no_rule':'BRAK REGUŁY','legend_no_rule_desc':'– zapadka porusza się TYLKO sama',
+      'legend_important':'Ważne:','legend_important_desc':'Jeśli nie chcesz, aby zapadka wpływała na inne – nie dodawaj dla niej reguły.',
+      'stats_title':'📊 Statystyki','stats_moves':'• Najkrótsza liczba ruchów:',
+      'stats_rules':'• Liczba reguł:','stats_pins':'• Liczba zapadek:',
+      'visualization_title':'▣▣▣ 1. Stan zamka','visualization_empty':'Dodaj zamek aby rozpocząć',
+      'visualization_hint':'💡 Kliknij na otwór aby ustawić bolec','position_label':'Pozycja:',
+      'solution_title':'🔓 Rozwiązanie','solution_empty':'Dodaj zamek i kliknij "Rozwiąż zamek"',
+      'solution_click':'Kliknij "Rozwiąż zamek" aby znaleźć rozwiązanie',
+      'solution_found':'✅ Rozwiązanie znalezione!','solution_not_found':'❌ Nie znaleziono rozwiązania!',
+      'solution_moves':'ruchów','pin_word':'Zapadka','direction_right':'→','direction_left':'←',
+      'sim_first':'⏮ Pierwszy','sim_prev':'◀ Poprzedni','sim_play':'▶ Odtwarzaj',
+      'sim_pause':'⏸ Pauza','sim_next':'Następny ▶','sim_last':'Ostatni ⏭',
+      'sim_speed':'Prędkość:','sim_step':'Krok:','sim_step_label':'Krok',
+      'sim_initial':'Stan początkowy','footer':'Gothic Lock Studio',
+      'footer_author':'stworzone przez kesajXIII','footer_rights':'Wszelkie prawa zastrzeżone',
+      'all_bolts_at_position':'✅ WSZYSTKIE BOLCE NA POZYCJI 4! Kliknij "Rozwiąż zamek" aby zablokować! 🎉',
+      'tutorial_title':'📖 JAK TO DZIAŁA',
+      'tutorial_step1_title':'🎯 Cel: wszystkie bolce na pozycji 4',
+      'tutorial_step1_desc':'Przesuń każdą zapadkę tak, aby <strong>złoty bolec</strong> znalazł się w <strong>środkowym otworze (4)</strong>.',
+      'tutorial_step2_title':'🖱️ Jak ustawić stan początkowy zapadek',
+      'tutorial_step2_desc':'Kliknij na <strong>dowolny otwór</strong> (1-7) na wybranej zapadce, aby ustawić bolec na tej pozycji. To określa początkowy układ zamka.',
+      'tutorial_step3_title':'🎨 Wizualne wskazówki',
+      'tutorial_legend_gold':'Bolec na pozycji 1-3 lub 5-7',
+      'tutorial_legend_green':'Bolec na pozycji 4 ✅',
+      'tutorial_legend_dark':'Pusty otwór',
+      'tutorial_step4_title':'🔗 Reguły (+ i -)',
+      'tutorial_step4_desc':'<code>+</code> = przesuwa powiązaną zapadkę w <strong>tę samą</strong> stronę<br><code>-</code> = przesuwa powiązaną zapadkę w <strong>przeciwną</strong> stronę',
+      'tutorial_step5_title':'🔓 Rozwiązanie',
+      'tutorial_step5_desc':'Kliknij <strong>"Rozwiąż zamek"</strong> aby znaleźć optymalną sekwencję ruchów. Użyj przycisków <strong>▶ Odtwarzaj</strong> aby zobaczyć krok po kroku.',
+      'tutorial_step6_title':'⚡ Przykład: przesuwanie zapadki',
+      'tutorial_demo_hint':'Kliknij na otwór 4 → bolec zmienia kolor na <span style="color:#6aaa4a;">ZIELONY</span>!'
+    },
+    'en': { 
+      'my_locks':'🗝️ MY LOCKS','no_locks':'No locks – click "➕ New"','add_new':'➕ New',
+      'delete':'🗑 Delete','export':'💾 Export','import':'📂 Import',
+      'no_lock_to_delete':'No lock to delete','no_locks_to_delete':'No locks to delete',
+      'no_locks_to_export':'❌ No locks to export','export_success':'✅ Export completed',
+      'import_success':'✅ Imported','import_error':'❌ Import error','locks':'locks',
+      'lock_deleted':'Lock deleted','added_lock':'New lock added',
+      'lock_solved_blocked':'🔒 Lock solved – you cannot change pins.',
+      'visualization_locked':'🔒 Lock solved – pins locked',
+      'legend_lock_info':'PIN LOCK','legend_lock_info_desc':'– after solving, pins lock',
+      'editor_title':'⚙️ LOCK EDITOR','name':'Name:','name_placeholder':'e.g. Royal Lock',
+      'description':'Description:','description_placeholder':'description...','pin_count':'Pins:',
+      'rules':'📜 Rules','no_rules':'No rules','add_rule':'+ Add rule',
+      'solve':'🔓 Solve lock','status':'Status: Add a new lock to start',
+      'legend_title':'What do symbols mean?','legend_same':'same direction',
+      'legend_same_desc':'– pin moves same direction','legend_opposite':'opposite direction',
+      'legend_opposite_desc':'– pin moves opposite direction','legend_no_rule':'NO RULE',
+      'legend_no_rule_desc':'– pin moves ONLY by itself','legend_important':'Important:',
+      'legend_important_desc':"If you don't want the pin to affect others – do not add a rule for it.",
+      'stats_title':'📊 Statistics','stats_moves':'• Shortest moves:',
+      'stats_rules':'• Number of rules:','stats_pins':'• Number of pins:',
+      'visualization_title':'▣▣▣ 1. Lock state','visualization_empty':'Add a lock to start',
+      'visualization_hint':'💡 Click on a hole to set the bolt','position_label':'Position:',
+      'solution_title':'🔓 Solution','solution_empty':'Add a lock and click "Solve lock"',
+      'solution_click':'Click "Solve lock" to find a solution',
+      'solution_found':'✅ Solution found!','solution_not_found':'❌ No solution found!',
+      'solution_moves':'moves','pin_word':'Pin','direction_right':'→','direction_left':'←',
+      'sim_first':'⏮ First','sim_prev':'◀ Previous','sim_play':'▶ Play',
+      'sim_pause':'⏸ Pause','sim_next':'Next ▶','sim_last':'Last ⏭',
+      'sim_speed':'Speed:','sim_step':'Step:','sim_step_label':'Step',
+      'sim_initial':'Initial state','footer':'Gothic Lock Studio',
+      'footer_author':'created by kesajXIII','footer_rights':'All rights reserved',
+      'all_bolts_at_position':'✅ ALL BOLTS AT POSITION 4! Click "Solve lock" to lock! 🎉',
+      'tutorial_title':'📖 HOW IT WORKS',
+      'tutorial_step1_title':'🎯 Goal: all bolts at position 4',
+      'tutorial_step1_desc':'Move each pin so that the <strong>golden bolt</strong> is in the <strong>center hole (4)</strong>.',
+      'tutorial_step2_title':'🖱️ How to set initial pin state',
+      'tutorial_step2_desc':'Click on <strong>any hole</strong> (1-7) on the selected pin to place the bolt at that position. This sets the initial configuration of the lock.',
+      'tutorial_step3_title':'🎨 Visual indicators',
+      'tutorial_legend_gold':'Bolt at position 1-3 or 5-7',
+      'tutorial_legend_green':'Bolt at position 4 ✅',
+      'tutorial_legend_dark':'Empty hole',
+      'tutorial_step4_title':'🔗 Rules (+ and -)',
+      'tutorial_step4_desc':'<code>+</code> = moves the linked pin in the <strong>same</strong> direction<br><code>-</code> = moves the linked pin in the <strong>opposite</strong> direction',
+      'tutorial_step5_title':'🔓 Solution',
+      'tutorial_step5_desc':'Click <strong>"Solve lock"</strong> to find the optimal sequence of moves. Use the <strong>▶ Play</strong> button to watch it step by step.',
+      'tutorial_step6_title':'⚡ Example: moving a pin',
+      'tutorial_demo_hint':'Click on hole 4 → the bolt turns <span style="color:#6aaa4a;">GREEN</span>!'
+    },
+    'de': { 
+      'my_locks':'🗝️ MEINE SCHLÖSSER','no_locks':'Keine Schlösser – klicke "➕ Neu"','add_new':'➕ Neu',
+      'delete':'🗑 Löschen','export':'💾 Exportieren','import':'📂 Importieren',
+      'no_lock_to_delete':'Kein Schloss zum Löschen','no_locks_to_delete':'Keine Schlösser zum Löschen',
+      'no_locks_to_export':'❌ Keine Schlösser zum Export','export_success':'✅ Export abgeschlossen',
+      'import_success':'✅ Importiert','import_error':'❌ Importfehler','locks':'Schlösser',
+      'lock_deleted':'Schloss gelöscht','added_lock':'Neues Schloss hinzugefügt',
+      'lock_solved_blocked':'🔒 Schloss gelöst – du kannst die Stifte nicht ändern.',
+      'visualization_locked':'🔒 Schloss gelöst – Stifte gesperrt',
+      'legend_lock_info':'STIFT-SPERRE','legend_lock_info_desc':'– nach dem Lösen werden die Stifte gesperrt',
+      'editor_title':'⚙️ SCHLOSS-EDITOR','name':'Name:','name_placeholder':'z.B. Königsschloss',
+      'description':'Beschreibung:','description_placeholder':'Beschreibung...','pin_count':'Stifte:',
+      'rules':'📜 Regeln','no_rules':'Keine Regeln','add_rule':'+ Regel hinzufügen',
+      'solve':'🔓 Schloss lösen','status':'Status: Füge ein neues Schloss hinzu',
+      'legend_title':'Was bedeuten die Symbole?','legend_same':'gleiche Richtung',
+      'legend_same_desc':'– Stift bewegt sich gleiche Richtung','legend_opposite':'entgegengesetzte Richtung',
+      'legend_opposite_desc':'– Stift bewegt sich entgegengesetzt','legend_no_rule':'KEINE REGEL',
+      'legend_no_rule_desc':'– Stift bewegt sich NUR selbst','legend_important':'Wichtig:',
+      'legend_important_desc':'Wenn du nicht möchtest, dass der Stift andere beeinflusst – füge keine Regel hinzu.',
+      'stats_title':'📊 Statistiken','stats_moves':'• Kürzeste Züge:',
+      'stats_rules':'• Anzahl Regeln:','stats_pins':'• Anzahl Stifte:',
+      'visualization_title':'▣▣▣ 1. Schlosszustand','visualization_empty':'Schloss hinzufügen',
+      'visualization_hint':'💡 Klicke auf ein Loch, um den Bolzen zu setzen','position_label':'Position:',
+      'solution_title':'🔓 Lösung','solution_empty':'Schloss hinzufügen und "Schloss lösen" klicken',
+      'solution_click':'Klicke "Schloss lösen"','solution_found':'✅ Lösung gefunden!',
+      'solution_not_found':'❌ Keine Lösung!','solution_moves':'Züge','pin_word':'Stift',
+      'direction_right':'→','direction_left':'←','sim_first':'⏮ Erste',
+      'sim_prev':'◀ Vorherige','sim_play':'▶ Abspielen','sim_pause':'⏸ Pause',
+      'sim_next':'Nächste ▶','sim_last':'Letzte ⏭','sim_speed':'Geschwindigkeit:',
+      'sim_step':'Schritt:','sim_step_label':'Schritt','sim_initial':'Anfangszustand',
+      'footer':'Gothic Lock Studio','footer_author':'erstellt von kesajXIII',
+      'footer_rights':'Alle Rechte vorbehalten',
+      'all_bolts_at_position':'✅ ALLE BOLZEN AUF POSITION 4! Klicke "Schloss lösen" um zu sperren! 🎉',
+      'tutorial_title':'📖 WIE ES FUNKTIONIERT',
+      'tutorial_step1_title':'🎯 Ziel: alle Bolzen auf Position 4',
+      'tutorial_step1_desc':'Bewege jeden Stift so, dass der <strong>goldene Bolzen</strong> im <strong>mittleren Loch (4)</strong> ist.',
+      'tutorial_step2_title':'🖱️ So stellst du den Anfangsstatus der Stifte ein',
+      'tutorial_step2_desc':'Klicke auf <strong>ein beliebiges Loch</strong> (1-7) auf dem ausgewählten Stift, um den Bolzen an diese Position zu setzen. Das legt die Anfangskonfiguration des Schlosses fest.',
+      'tutorial_step3_title':'🎨 Visuelle Hinweise',
+      'tutorial_legend_gold':'Bolzen auf Position 1-3 oder 5-7',
+      'tutorial_legend_green':'Bolzen auf Position 4 ✅',
+      'tutorial_legend_dark':'Leeres Loch',
+      'tutorial_step4_title':'🔗 Regeln (+ und -)',
+      'tutorial_step4_desc':'<code>+</code> = bewegt den verbundenen Stift in die <strong>gleiche</strong> Richtung<br><code>-</code> = bewegt den verbundenen Stift in die <strong>gegenüberliegende</strong> Richtung',
+      'tutorial_step5_title':'🔓 Lösung',
+      'tutorial_step5_desc':'Klicke auf <strong>"Schloss lösen"</strong> um die optimale Zugfolge zu finden. Verwende den <strong>▶ Abspielen</strong> Button, um es Schritt für Schritt anzusehen.',
+      'tutorial_step6_title':'⚡ Beispiel: Stift bewegen',
+      'tutorial_demo_hint':'Klicke auf Loch 4 → der Bolzen wird <span style="color:#6aaa4a;">GRÜN</span>!'
+    },
+    'ru': { 
+      'my_locks':'🗝️ МОИ ЗАМКИ','no_locks':'Нет замков – нажмите "➕ Новый"','add_new':'➕ Новый',
+      'delete':'🗑 Удалить','export':'💾 Экспорт','import':'📂 Импорт',
+      'no_lock_to_delete':'Нет замка для удаления','no_locks_to_delete':'Нет замков для удаления',
+      'no_locks_to_export':'❌ Нет замков для экспорта','export_success':'✅ Экспорт завершен',
+      'import_success':'✅ Импортировано','import_error':'❌ Ошибка импорта','locks':'замков',
+      'lock_deleted':'Замок удален','added_lock':'Новый замок добавлен',
+      'lock_solved_blocked':'🔒 Замок решен – вы не можете менять пины.',
+      'visualization_locked':'🔒 Замок решен – пины заблокированы',
+      'legend_lock_info':'БЛОКИРОВКА ПИНОВ','legend_lock_info_desc':'– после решения пины блокируются',
+      'editor_title':'⚙️ РЕДАКТОР ЗАМКА','name':'Название:','name_placeholder':'например, Королевский замок',
+      'description':'Описание:','description_placeholder':'описание...','pin_count':'Пины:',
+      'rules':'📜 Правила','no_rules':'Нет правил','add_rule':'+ Добавить правило',
+      'solve':'🔓 Решить замок','status':'Состояние: Добавьте новый замок',
+      'legend_title':'Что означают символы?','legend_same':'то же направление',
+      'legend_same_desc':'– пин движется в том же направлении','legend_opposite':'противоположное направление',
+      'legend_opposite_desc':'– пин движется в противоположном направлении','legend_no_rule':'НЕТ ПРАВИЛА',
+      'legend_no_rule_desc':'– пин движется ТОЛЬКО сам','legend_important':'Важно:',
+      'legend_important_desc':'Если вы не хотите, чтобы пин влиял на другие – не добавляйте для него правило.',
+      'stats_title':'📊 Статистика','stats_moves':'• Наименьшее количество ходов:',
+      'stats_rules':'• Количество правил:','stats_pins':'• Количество пинов:',
+      'visualization_title':'▣▣▣ 1. Состояние замка','visualization_empty':'Добавьте замок',
+      'visualization_hint':'💡 Нажмите на отверстие, чтобы установить болт','position_label':'Позиция:',
+      'solution_title':'🔓 Решение','solution_empty':'Добавьте замок и нажмите "Решить замок"',
+      'solution_click':'Нажмите "Решить замок"','solution_found':'✅ Решение найдено!',
+      'solution_not_found':'❌ Решение не найдено!','solution_moves':'ходов','pin_word':'Пин',
+      'direction_right':'→','direction_left':'←','sim_first':'⏮ Первый',
+      'sim_prev':'◀ Предыдущий','sim_play':'▶ Воспроизвести','sim_pause':'⏸ Пауза',
+      'sim_next':'Следующий ▶','sim_last':'Последний ⏭','sim_speed':'Скорость:',
+      'sim_step':'Шаг:','sim_step_label':'Шаг','sim_initial':'Начальное состояние',
+      'footer':'Gothic Lock Studio','footer_author':'создано kesajXIII',
+      'footer_rights':'Все права защищены',
+      'all_bolts_at_position':'✅ ВСЕ БОЛТЫ НА ПОЗИЦИИ 4! Нажмите "Решить замок" чтобы заблокировать! 🎉',
+      'tutorial_title':'📖 КАК ЭТО РАБОТАЕТ',
+      'tutorial_step1_title':'🎯 Цель: все болты на позиции 4',
+      'tutorial_step1_desc':'Переместите каждый пин так, чтобы <strong>золотой болт</strong> оказался в <strong>центральном отверстии (4)</strong>.',
+      'tutorial_step2_title':'🖱️ Как установить начальное состояние пинов',
+      'tutorial_step2_desc':'Нажмите на <strong>любое отверстие</strong> (1-7) на выбранном пине, чтобы установить болт на эту позицию. Это задает начальную конфигурацию замка.',
+      'tutorial_step3_title':'🎨 Визуальные подсказки',
+      'tutorial_legend_gold':'Болт на позиции 1-3 или 5-7',
+      'tutorial_legend_green':'Болт на позиции 4 ✅',
+      'tutorial_legend_dark':'Пустое отверстие',
+      'tutorial_step4_title':'🔗 Правила (+ и -)',
+      'tutorial_step4_desc':'<code>+</code> = перемещает связанный пин в <strong>том же</strong> направлении<br><code>-</code> = перемещает связанный пин в <strong>противоположном</strong> направлении',
+      'tutorial_step5_title':'🔓 Решение',
+      'tutorial_step5_desc':'Нажмите <strong>"Решить замок"</strong> чтобы найти оптимальную последовательность ходов. Используйте кнопку <strong>▶ Воспроизвести</strong> чтобы увидеть пошагово.',
+      'tutorial_step6_title':'⚡ Пример: перемещение пина',
+      'tutorial_demo_hint':'Нажмите на отверстие 4 → болт станет <span style="color:#6aaa4a;">ЗЕЛЕНЫМ</span>!'
+    }
+  };
+  
+  let currentLanguage = 'pl';
+  function setLanguage(lang) {
+    currentLanguage = lang;
+    const t = translations[lang];
+    if (!t) return;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (t[key] !== undefined) el.innerHTML = t[key];
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (t[key] !== undefined) el.placeholder = t[key];
+    });
+    localStorage.setItem('gothic-lock-language', lang);
+    renderAll();
+  }
+  const savedLang = localStorage.getItem('gothic-lock-language');
+  if (savedLang && translations[savedLang]) setLanguage(savedLang); else setLanguage('pl');
+
+  // ===================== LICZNIK ODWIEDZIN =====================
+  (function() {
+    try {
+      const counter = document.getElementById('visitorCount');
+      if (!counter) return;
+      let count = parseInt(localStorage.getItem('gothicLockVisits')) || 0;
+      if (!sessionStorage.getItem('gothicLockVisited')) {
+        count++;
+        localStorage.setItem('gothicLockVisits', count);
+        sessionStorage.setItem('gothicLockVisited', 'true');
+      }
+      counter.textContent = 'Odwiedziny: ' + count;
+    } catch(e) {
+      document.getElementById('visitorCount').textContent = 'Odwiedziny: 1';
+    }
+  })();
+
+  // ===================== INICJACJA =====================
+  const hasSavedLocks = loadLocksFromStorage();
+  if (hasSavedLocks && locks.length > 0) {
+    currentLockIndex = 0;
+    loadLock(0);
+    setStatus(`📚 Wczytano ${locks.length} zamków z pamięci`);
+  } else {
+    const defaultLock = new LockData(
+      "Przykładowy zamek",
+      "Zamek treningowy - ustaw wszystkie bolce na pozycji 4",
+      3,
+      [2, 5, 3],
+      []
+    );
+    defaultLock.isSolved = false;
+    locks.push(defaultLock);
+    currentLockIndex = 0;
+    currentPins = [2, 5, 3];
+    renderAll();
+    enableControls(true);
+    setStatus('🎯 Przykładowy zamek załadowany - przesuń bolce na pozycję 4');
+    autoSave();
+  }
+
+  document.getElementById('lockName').addEventListener('change', function() {
+    const lock = locks[currentLockIndex]; if (lock) { lock.name = this.value || 'Bez nazwy'; renderLockList(); autoSave(); }
+  });
+  document.getElementById('lockDesc').addEventListener('change', function() {
+    const lock = locks[currentLockIndex]; if (lock) { lock.description = this.value || ''; autoSave(); }
+  });
+  document.getElementById('pinCount').addEventListener('change', function() {
+    const lock = locks[currentLockIndex]; if (!lock) return;
+    const newCount = parseInt(this.value);
+    lock.pinCount = newCount;
+    const newPins = [];
+    for (let i=0; i<newCount; i++) newPins[i] = i < lock.initialPins.length ? lock.initialPins[i] : 4;
+    lock.initialPins = newPins;
+    currentPins = [...newPins];
+    lock.rules = lock.rules.filter(r => r.fromPin <= newCount && r.toPin <= newCount);
+    lock.solution = []; solutionSteps = []; currentStepIndex = -1; lock.isSolved = false; stopPlayback();
+    renderLockVisualization(); renderRules(); renderSolution(); updateStats(); updateSimulationControls(false); updateStepInfo();
+    setStatus(`Zmieniono ilość zapadek na ${newCount}`); autoSave();
+  });
+  document.getElementById('speedSlider').addEventListener('input', function() {
+    const val = parseInt(this.value);
+    document.getElementById('speedLabel').textContent = (val / 5).toFixed(1) + 'x';
+    speed = Math.max(200, 1200 - val * 100);
+  });
+
+  console.log('🔄 Gothic Lock Studio (Izometryczny) loaded successfully!');
+  console.log(`📚 ${locks.length} locks available`);
+</script>
 </body>
 </html>
