@@ -319,6 +319,16 @@
     .lock-pin.locked { opacity: 0.6; cursor: not-allowed; transform: rotateX(4deg) rotateY(-2deg) scale(0.98); background-image: var(--pin-locked); }
     .lock-pin.solved { border-color: #4a8a3a; box-shadow: 0 0 30px rgba(74, 138, 58, 0.3); background-image: var(--pin-solved); }
 
+    .lock-pin.move-pin {
+      border-color: #f0d080;
+      box-shadow: 0 0 30px rgba(219, 176, 124, 0.5), inset 0 0 20px rgba(219, 176, 124, 0.1);
+      animation: glow-pin 1s ease-in-out infinite;
+    }
+    @keyframes glow-pin {
+      0%, 100% { box-shadow: 0 0 20px rgba(219, 176, 124, 0.3), inset 0 0 15px rgba(219, 176, 124, 0.05); }
+      50% { box-shadow: 0 0 40px rgba(219, 176, 124, 0.7), inset 0 0 30px rgba(219, 176, 124, 0.15); }
+    }
+
     .pin-label {
       color: var(--color-accent);
       font-weight: bold;
@@ -401,9 +411,9 @@
     }
     .pin-position.solved-pos { color: #6aaa4a; }
     
-    /* Strzałka kierunkowa NAD pozycją */
+    /* Strzałki - teraz odwrócone: ← = przesuń w prawo, → = przesuń w lewo */
     .direction-arrow {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
       line-height: 1;
       animation: arrow-pulse 0.8s ease-in-out infinite;
@@ -411,8 +421,12 @@
       text-align: center;
       margin-bottom: 1px;
     }
-    .direction-arrow.left { color: #ff8844; }
-    .direction-arrow.right { color: #44bbff; }
+    .direction-arrow.left { 
+      color: #44bbff; /* Niebieski dla lewej strzałki = przesuń w prawo */
+    }
+    .direction-arrow.right { 
+      color: #ff8844; /* Pomarańczowy dla prawej strzałki = przesuń w lewo */
+    }
     
     @keyframes arrow-pulse {
       0%, 100% { transform: scale(1); opacity: 0.7; }
@@ -1324,9 +1338,9 @@
   const solver = new LockSolver();
   const STORAGE_KEY = 'gothicLockStudio_locks';
 
-  // Przechowuje kierunek dla głównej zapadki w bieżącym kroku
-  let mainPinDirection = null;
+  // Przechowuje informacje o głównej zapadce do przesunięcia
   let mainPinIndex = -1;
+  let mainPinDirection = null; // 1 = prawo, -1 = lewo
 
   function saveLocksToStorage() {
     try {
@@ -1467,8 +1481,15 @@
       const value = currentPins[i] || 4;
       const isAtTarget = (value === lock.targetValue);
       
+      // Czy ta zapadka jest główną zapadką do przesunięcia?
+      const isMainPin = (hasSolution && i === mainPinIndex && mainPinDirection !== null);
+      
       const pinDiv = document.createElement('div');
-      pinDiv.className = `lock-pin ${i === selectedPin ? 'selected' : ''} ${i === highlightedPin ? 'highlighted' : ''} ${isLocked ? 'locked' : ''} ${allSolved && !isLocked ? 'solved' : ''}`;
+      let pinClasses = `lock-pin ${i === selectedPin ? 'selected' : ''} ${i === highlightedPin ? 'highlighted' : ''} ${isLocked ? 'locked' : ''} ${allSolved && !isLocked ? 'solved' : ''}`;
+      if (isMainPin) {
+        pinClasses += ' move-pin';
+      }
+      pinDiv.className = pinClasses;
       pinDiv.onclick = () => onPinClick(i);
       
       const label = document.createElement('div'); 
@@ -1500,16 +1521,23 @@
       }
       pinDiv.appendChild(body);
       
-      // Pozycja ze strzałką NAD (tylko dla głównej zapadki)
+      // Pozycja ze strzałką NAD
       const position = document.createElement('div');
       position.className = `pin-position ${isAtTarget ? 'solved-pos' : ''}`;
       
       let positionHTML = '';
       
-      // Strzałka NAD pozycją - tylko dla głównej zapadki w bieżącym kroku
-      if (hasSolution && i === mainPinIndex && mainPinDirection !== null) {
-        const arrowSymbol = mainPinDirection === 1 ? '→' : '←';
-        const arrowClass = mainPinDirection === 1 ? 'right' : 'left';
+      // Strzałka NAD pozycją - ODWRÓCONE kierunki!
+      // ← oznacza przesunięcie zapadki w PRAWO, → oznacza przesunięcie w LEWO
+      if (isMainPin) {
+        let arrowSymbol, arrowClass;
+        if (mainPinDirection === 1) { // zapadka ma iść w prawo
+          arrowSymbol = '←';
+          arrowClass = 'left';
+        } else { // zapadka ma iść w lewo
+          arrowSymbol = '→';
+          arrowClass = 'right';
+        }
         positionHTML += `<span class="direction-arrow ${arrowClass}">${arrowSymbol}</span>`;
       }
       
@@ -1607,7 +1635,6 @@
     document.getElementById('stepInfo').textContent = `${translations[currentLanguage].sim_step || 'Krok:'} ${current}/${total}`;
   }
 
-  // Funkcja do wyciągania głównej zapadki i jej kierunku z kroku
   function getMainPinInfo(stepIndex) {
     const lock = locks[currentLockIndex];
     if (!lock || !lock.solution || stepIndex < 0 || stepIndex >= lock.solution.length) {
@@ -1633,7 +1660,6 @@
     for (let i = 0; i <= index && i < solutionSteps.length; i++) applyStepToPins(currentPins, solutionSteps[i]);
     highlightedPin = (index >= 0 && index < solutionSteps.length) ? parseInt(solutionSteps[index].split(' ')[1]) - 1 : -1;
     
-    // Ustaw główną zapadkę i jej kierunek dla bieżącego kroku
     if (index >= 0 && index < solutionSteps.length) {
       const info = getMainPinInfo(index);
       mainPinIndex = info.pinIndex;
@@ -2217,7 +2243,7 @@
   console.log('🔄 Gothic Lock Studio (Izometryczny) loaded successfully!');
   console.log(`📚 ${locks.length} locks available`);
   console.log('🎨 Theme system initialized with translations!');
-  console.log('➡️ Direction arrows feature added (only for main pin, above position)!');
+  console.log('➡️ Direction arrows reversed: ← = move right, → = move left!');
 </script>
 </body>
 </html>
